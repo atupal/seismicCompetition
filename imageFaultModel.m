@@ -36,7 +36,7 @@ readFromMem = true;
 % Options are 'serial','parallel','parallel-gpu' (or any combination of
 % them).
 %  NOTE: parallel-gpu is not implemented.
-runMode = {'serial','parallel','parallel-gpu'};
+runMode = {'serial','parallel'};
 
 %% Model and Data Parameters
 units = {'m','s'};
