@@ -38,7 +38,7 @@ readFromMem = true;
 %  NOTE: parallel-gpu is not implemented.
 
 % runMode = {'serial','parallel','parallel-gpu'};
-runMode = {'serial','parallel'};
+runMode = {'serial'};
 %runMode = {'parallel'};
 
 
