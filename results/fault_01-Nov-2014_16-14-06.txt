@@ -1,0 +1,28 @@
+Host: miledeMackBook-Pro.local/25.0.0.158
+Test: fault
+
+Start Time:	01-Nov-2014 16:14:11
+
+PARALLEL RUN
+Number of Workers: 2
+Total processing time through iter 001: 00:00:02.5
+Total processing time through iter 002: 00:00:02.7
+Total processing time through iter 003: 00:00:04.9
+Total processing time through iter 004: 00:00:05.1
+Total processing time through iter 005: 00:00:07.3
+Total processing time through iter 006: 00:00:07.4
+Total processing time through iter 007: 00:00:09.6
+Total processing time through iter 008: 00:00:09.7
+Total processing time through iter 009: 00:00:12.1
+Total processing time through iter 010: 00:00:12.2
+Total processing time through iter 011: 00:00:15.0
+Total processing time through iter 012: 00:00:15.2
+Total processing time through iter 013: 00:00:18.3
+Total processing time through iter 014: 00:00:18.4
+Total processing time through iter 015: 00:00:21.3
+Total processing time through iter 016: 00:00:21.5
+Total processing time through iter 017: 00:00:24.2
+Total processing time through iter 018: 00:00:24.4
+Total processing time through iter 019: 00:00:27.3
+
+End Time:	01-Nov-2014 16:14:39

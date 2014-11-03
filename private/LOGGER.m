@@ -10,7 +10,9 @@ if strcmp(str,'init')
     rootd = varargin{1};
     test = varargin{2};
     file = strrep(fullfile(rootd,[test '_' datestr(now) '.txt']),' ','_');
+
     file = strrep(file(1:end),':','-');
+
     if isempty(fid)
         fid = fopen(file,'wt');
         if fid<0

@@ -1,0 +1,18 @@
+Host: miledeMackBook-Pro.local/127.0.0.1
+Test: salt_tooth
+
+Start Time:	31-Oct-2014 15:07:25
+
+SERIAL RUN
+Total processing time through iter 001: 00:03:33.5
+Total processing time through iter 002: 00:06:32.6
+Total processing time through iter 003: 00:09:31.6
+
+PARALLEL RUN
+Number of Workers: 2
+Total processing time through iter 001: 00:00:03.3
+Total processing time through iter 002: 00:00:03.5
+Total processing time through iter 003: 00:00:05.9
+Total processing time through iter 004: 00:00:06.2
+
+End Time:	31-Oct-2014 16:16:06

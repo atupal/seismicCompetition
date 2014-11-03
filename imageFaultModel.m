@@ -36,7 +36,11 @@ readFromMem = true;
 % Options are 'serial','parallel','parallel-gpu' (or any combination of
 % them).
 %  NOTE: parallel-gpu is not implemented.
+
+% runMode = {'serial','parallel','parallel-gpu'};
 runMode = {'serial','parallel'};
+%runMode = {'parallel'};
+
 
 %% Model and Data Parameters
 units = {'m','s'};
@@ -57,7 +61,9 @@ ss = 1;             % shot trace scaling
 dsx = ds/dxr;
 
 %% Load velocity model
+
 v = SegYFileReader(velocityFile,true,false);
+
 velocityModel = v(:,:);
 
 [nz,nx] = size(velocityModel);

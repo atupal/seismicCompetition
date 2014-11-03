@@ -1,0 +1,21 @@
+Host: miledeMackBook-Pro.local/25.0.0.158
+Test: fault
+
+Start Time:	02-Nov-2014 14:23:09
+
+SERIAL RUN
+Total processing time through iter 001: 00:00:04.0
+Total processing time through iter 002: 00:00:06.8
+Total processing time through iter 003: 00:00:09.8
+Total processing time through iter 004: 00:00:12.7
+Total processing time through iter 005: 00:00:15.5
+Total processing time through iter 006: 00:00:18.3
+Total processing time through iter 007: 00:00:21.2
+Total processing time through iter 008: 00:00:24.2
+Total processing time through iter 009: 00:00:27.0
+Total processing time through iter 010: 00:00:29.7
+Total processing time through iter 011: 00:00:33.1
+Total processing time through iter 012: 00:00:36.0
+Total processing time through iter 013: 00:00:39.0
+
+End Time:	02-Nov-2014 14:23:51

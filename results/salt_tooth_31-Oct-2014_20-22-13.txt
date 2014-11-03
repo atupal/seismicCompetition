@@ -1,0 +1,11 @@
+Host: miledeMackBook-Pro.local/127.0.0.1
+Test: salt_tooth
+
+Start Time:	31-Oct-2014 20:22:18
+
+PARALLEL RUN
+Number of Workers: 2
+Total processing time through iter 001: 00:06:17.2
+Total processing time through iter 002: 00:06:23.9
+
+End Time:	31-Oct-2014 20:28:56

@@ -1,0 +1,110 @@
+Host: miledeMackBook-Pro.local/25.0.0.158
+Test: fault
+
+Start Time:	01-Nov-2014 15:56:03
+
+PARALLEL RUN
+Number of Workers: 2
+Total processing time through iter 001: 00:00:03.3
+Total processing time through iter 002: 00:00:03.6
+Total processing time through iter 003: 00:00:06.2
+Total processing time through iter 004: 00:00:06.4
+Total processing time through iter 005: 00:00:08.8
+Total processing time through iter 006: 00:00:09.0
+Total processing time through iter 007: 00:00:11.8
+Total processing time through iter 008: 00:00:12.0
+Total processing time through iter 009: 00:00:14.2
+Total processing time through iter 010: 00:00:14.4
+Total processing time through iter 011: 00:00:16.5
+Total processing time through iter 012: 00:00:16.7
+Total processing time through iter 013: 00:00:19.0
+Total processing time through iter 014: 00:00:19.2
+Total processing time through iter 015: 00:00:21.4
+Total processing time through iter 016: 00:00:21.7
+Total processing time through iter 017: 00:00:23.9
+Total processing time through iter 018: 00:00:24.2
+Total processing time through iter 019: 00:00:26.7
+Total processing time through iter 020: 00:00:27.0
+Total processing time through iter 021: 00:00:29.4
+Total processing time through iter 022: 00:00:29.8
+Total processing time through iter 023: 00:00:32.3
+Total processing time through iter 024: 00:00:32.8
+Total processing time through iter 025: 00:00:35.1
+Total processing time through iter 026: 00:00:35.9
+Total processing time through iter 027: 00:00:38.2
+Total processing time through iter 028: 00:00:38.7
+Total processing time through iter 029: 00:00:41.5
+Total processing time through iter 030: 00:00:42.1
+Total processing time through iter 031: 00:00:44.2
+Total processing time through iter 032: 00:00:44.7
+Total processing time through iter 033: 00:00:46.9
+Total processing time through iter 034: 00:00:47.4
+Total processing time through iter 035: 00:00:49.7
+Total processing time through iter 036: 00:00:50.3
+Total processing time through iter 037: 00:00:52.3
+Total processing time through iter 038: 00:00:53.0
+Total processing time through iter 039: 00:00:55.0
+Total processing time through iter 040: 00:00:55.7
+Total processing time through iter 041: 00:00:57.7
+Total processing time through iter 042: 00:00:58.4
+Total processing time through iter 043: 00:01:02.1
+Total processing time through iter 044: 00:01:02.3
+Total processing time through iter 045: 00:01:03.6
+Total processing time through iter 046: 00:01:04.3
+Total processing time through iter 047: 00:01:06.2
+Total processing time through iter 048: 00:01:06.9
+Total processing time through iter 049: 00:01:08.9
+Total processing time through iter 050: 00:01:09.5
+Total processing time through iter 051: 00:01:11.4
+Total processing time through iter 052: 00:01:12.1
+Total processing time through iter 053: 00:01:14.0
+Total processing time through iter 054: 00:01:14.7
+Total processing time through iter 055: 00:01:16.6
+Total processing time through iter 056: 00:01:17.3
+Total processing time through iter 057: 00:01:19.2
+Total processing time through iter 058: 00:01:19.9
+Total processing time through iter 059: 00:01:21.7
+Total processing time through iter 060: 00:01:22.4
+Total processing time through iter 061: 00:01:24.3
+Total processing time through iter 062: 00:01:24.9
+Total processing time through iter 063: 00:01:27.0
+Total processing time through iter 064: 00:01:27.6
+Total processing time through iter 065: 00:01:29.6
+Total processing time through iter 066: 00:01:30.2
+Total processing time through iter 067: 00:01:32.1
+Total processing time through iter 068: 00:01:32.8
+Total processing time through iter 069: 00:01:34.6
+Total processing time through iter 070: 00:01:35.2
+Total processing time through iter 071: 00:01:37.0
+Total processing time through iter 072: 00:01:37.9
+Total processing time through iter 073: 00:01:40.0
+Total processing time through iter 074: 00:01:40.7
+Total processing time through iter 075: 00:01:42.9
+Total processing time through iter 076: 00:01:43.7
+Total processing time through iter 077: 00:01:45.7
+Total processing time through iter 078: 00:01:46.5
+Total processing time through iter 079: 00:01:48.5
+Total processing time through iter 080: 00:01:49.4
+Total processing time through iter 081: 00:01:51.7
+Total processing time through iter 082: 00:01:52.5
+Total processing time through iter 083: 00:01:54.2
+Total processing time through iter 084: 00:01:55.0
+Total processing time through iter 085: 00:01:56.7
+Total processing time through iter 086: 00:01:57.5
+Total processing time through iter 087: 00:01:59.2
+Total processing time through iter 088: 00:02:00.0
+Total processing time through iter 089: 00:02:01.7
+Total processing time through iter 090: 00:02:02.6
+Total processing time through iter 091: 00:02:04.2
+Total processing time through iter 092: 00:02:05.1
+Total processing time through iter 093: 00:02:07.0
+Total processing time through iter 094: 00:02:08.0
+Total processing time through iter 095: 00:02:09.5
+Total processing time through iter 096: 00:02:10.4
+Total processing time through iter 097: 00:02:11.9
+Total processing time through iter 098: 00:02:12.8
+Total processing time through iter 099: 00:02:14.3
+Total processing time through iter 100: 00:02:15.2
+Processing time for parallel run:	00:02:15.2
+
+End Time:	01-Nov-2014 15:58:18
