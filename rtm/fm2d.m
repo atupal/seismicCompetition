@@ -1,4 +1,4 @@
-function [data,snapshot] = fm2d(v,model,dx,nt,dt)
+function [data,M] = fm2d(v,model,dx,nt,dt,rtmsnapshot)
 %
 % model(nz,nx)      model vector
 % v(nz,nx)          velocity model
@@ -39,6 +39,8 @@ iz   = 2:(nz-1);     % interior z
 ix   = 2:(nx-1);     % interior x
 izb  = 1:nz-20;      % boundary z
 
+%%debug
+%{
 try
     snapshot = zeros(nz,nx,nt);
 catch
@@ -47,6 +49,7 @@ catch
     itcnt = 1;
     snapshot = diskArray('VariableName','rtm2d','SizeOfArray',[nz nx nt],'Writable',true);
 end
+%}
 
 for it = 2:nt
     % finite differencing on interior
@@ -102,6 +105,7 @@ for it = 2:nt
     colormap seismic
     drawnow
     %}
+    %{
     if exist('buffer','var') && itcnt < bufnt && it < nt
         buffer(:,:,itcnt) = fdm(:,:,1);
         itcnt = itcnt+1;
@@ -114,8 +118,10 @@ for it = 2:nt
         snapshot(:,:,(it-itcnt+1):it) = buffer(:,:,1:itcnt);
         itcnt = 1;
     else
-        snapshot(:,:,it) = fdm(:,:,1);
-    end
+    %}
+    rtmsnapshot(:,:,nt) = rtmsnapshot(:,:,nt-it+1).*fdm(:,:,1)+rtmsnapshot(:,:,nt);
+    %end
 end % time loop
 
+M=rtmsnapshot(:,:,nt);
 %data = data(21:nx-20,:);

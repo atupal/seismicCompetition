@@ -64,16 +64,18 @@ rtic = tic;
 trtm = toc(rtic);
 %% Process rtm solution in forward time
 ftic = tic;
-[~, snapshot] = fm2d(V,rtmdl,dx,nt,dt);
+[~, M] = fm2d(V,rtmdl,dx,nt,dt,rtmsnapshot);
 tfm = toc(ftic);
 
 %% Create an image from rtm and fm
 % Image is the product of rtm and fm solutions
+%{
 [r,c,~] = size(snapshot);
 M = zeros(r,c);
 for i = 1:nt
     M = snapshot(:,:,i).*rtmsnapshot(:,:,nt-i+1) + M;
 end
+%}
 sw = repmat(0:nr-1,nz,1) + ixs;
 sw(sw>nr)=nr;
 
