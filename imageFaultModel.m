@@ -104,7 +104,7 @@ for runCase = 1:length(runMode)
             tserial = 0;
             for ixs = 1:ns
                 stic = tic;
-                [dM,indv,inds] = processShotRecords(v,shot,ixs,ixwin,nxwin,ntr,nz,nx,nr,nt,dsx,dx,dt,ss);
+                [dM,indv,inds] = processShotRecordsOnGpu(v,shot,ixs,ixwin,nxwin,ntr,nz,nx,nr,nt,dsx,dx,dt,ss);
                 Stacked(:,indv(1):indv(end)) = dM + Stacked(:,indv(1):indv(end));
                 tserial = toc(stic) + tserial;
                 LOGGER('Total processing time through iter %03d: %s\n',ixs,hms(tserial))
