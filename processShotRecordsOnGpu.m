@@ -66,7 +66,7 @@ rtic=tic;
 %% Initialize storage
 [nz,nx] = size(V);
 [~,nt] = size(currentShot);
-fdm  = zeros(nz,nx,3);
+fdm  = zeros(nz,nx,3,'gpuArray');
 
 %% Boundary Absorbing Model
 iz = 1:20;
@@ -94,7 +94,7 @@ ixb  = gpuArray(1:20);         % boundary x (right)
 ixb2 = gpuArray(nx-19:nx);     % boundary x (left)
 
 %%gpu
-fdm=gpuArray(fdm);
+
 
 %%
 cz = 3;

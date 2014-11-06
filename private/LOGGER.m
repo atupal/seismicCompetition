@@ -11,7 +11,7 @@ if strcmp(str,'init')
     test = varargin{2};
     file = strrep(fullfile(rootd,[test '_' datestr(now) '.txt']),' ','_');
 
-    file = strrep(file(1:end),':','-');
+    file = strrep(file(3:end),':','-');
 
     if isempty(fid)
         fid = fopen(file,'wt');

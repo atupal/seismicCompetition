@@ -248,9 +248,7 @@ boundary = boundary';
 fdm(:,:,2) = model;
 data(:,1)  = model(1,:);
 
-% finite difference coefficients
-a = (V*dt/dx).^2;    % wave equation coefficient
-b = 2-4*a;
+
 
 % common indicies
 iz   = 2:(nz-1);     % interior z

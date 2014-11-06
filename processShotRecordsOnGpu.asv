@@ -66,7 +66,7 @@ rtic=tic;
 %% Initialize storage
 [nz,nx] = size(V);
 [~,nt] = size(currentShot);
-fdm  = zeros(nz,nx,3);
+fdm  = zeros(nz,nx,3,'gpuArray');
 
 %% Boundary Absorbing Model
 iz = 1:20;
@@ -89,12 +89,12 @@ b = 2-4*a;
 
 
 % common indicies
-ix   = 2:nx-1;       % interior x
-ixb  = 1:20;         % boundary x (right)
-ixb2 = nx-19:nx;     % boundary x (left)
+ix   = gpuArray(2:nx-1);       % interior x
+ixb  = gpuArray(1:20);         % boundary x (right)
+ixb2 = gpuArray(nx-19:nx);     % boundary x (left)
 
-%%gpu
-fdm=gpuArray(fdm);
+%% gpu
+
 
 %%
 cz = 3;
@@ -129,10 +129,10 @@ for it = (nt-1):-1:1
     end
 
     % time extrapolation between iz and bz
-    iz = 1:bz;
+    iz = gpuArray(1:bz);
     fdm(iz,ix,3) = fdm(iz,ix,3) - fdm(iz,ix,1);
 
-    iz = 2:ez;
+    iz = gpuArray(2:ez);
     fdm(iz,ix,2) = b(iz,ix).*fdm(iz,ix,1) + fdm(iz,ix,2) ...
         + a(iz,ix+1).*fdm(iz,ix+1,1) ...
         + a(iz,ix-1).*fdm(iz,ix-1,1) ...
