@@ -215,7 +215,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 		}
 
 		int ntt = nx*nz*it;
-#pragma omp parallel for collapse(2)
+#pragma omp for collapse(2)
 		for (int ix	= 0; ix < nx; ix++)
 		{
 			for (int iz = 0; iz < nz; iz++)
