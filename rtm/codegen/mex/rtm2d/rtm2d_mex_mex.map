@@ -1,0 +1,11 @@
+MEX {
+	global:
+		mexFunction;
+		emlrtMexFcnProperties;
+		rtm2d;
+		rtm2d_initialize;
+		rtm2d_terminate;
+		rtm2d_atexit;
+	local:
+		*;
+};

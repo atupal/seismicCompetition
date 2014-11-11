@@ -36,7 +36,8 @@ readFromMem = true;
 % Options are 'serial','parallel','parallel-gpu' (or any combination of
 % them).
 %  NOTE: parallel-gpu is not implemented.
-runMode = {'serial','parallel','parallel-gpu'};
+% runMode = {'serial','parallel','parallel-gpu'};
+runMode = {'serial'};
 
 %% Model and Data Parameters
 units = {'m','s'};
@@ -114,7 +115,8 @@ for runCase = 1:length(runMode)
             imageFigure('Parallel')
 
             % Get the current pool
-            p = gcp();
+            % p = gcp();
+            p = parpool(3);
             af = {fullfile(rootd,'fileReader'), fullfile(rootd,'rtm')};
             addAttachedFiles(p,af)
             LOGGER(['Number of Workers: ' num2str(p.NumWorkers) '\n'])

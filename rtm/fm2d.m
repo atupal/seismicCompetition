@@ -16,6 +16,16 @@ function [data,snapshot] = fm2d(v,model,dx,nt,dt)
 %v = [repmat(v(:,1),1,20), v, repmat(v(:,end),1,20)];
 %v(end+20,:) = v(end,:);
 %% Initialize storage
+assert(isa(model, 'double'));
+assert(all(size(model)<=[120, 50]));
+assert(isa(v, 'double'));
+assert(all(size(v)<=[120 50]));
+assert(isa(dx, 'double'));
+assert(all(size(dx)==[1]));
+assert(isa(dt, 'double'));
+assert(all(size(dt)==[1]));
+assert(isa(nt, 'double'));
+assert(all(size(nt)==[1]));
 [nz,nx] = size(model);
 data = zeros(nx,nt);
 fdm  = zeros(nz,nx,3);
@@ -38,14 +48,7 @@ iz   = 2:(nz-1);     % interior z
 ix   = 2:(nx-1);     % interior x
 izb  = 1:nz-20;      % boundary z
 
-try
-    snapshot = zeros(nz,nx,nt);
-catch
-    bufnt = floor(nt/((nz*nx*nt*8)/(4*1024^3)));
-    buffer = zeros(nz,nx,bufnt);
-    itcnt = 1;
-    snapshot = diskArray('VariableName','rtm2d','SizeOfArray',[nz nx nt],'Writable',true);
-end
+snapshot = zeros(nz,nx,nt);
 
 for it = 2:nt
     % finite differencing on interior
@@ -101,20 +104,7 @@ for it = 2:nt
     colormap seismic
     drawnow
     %}
-    if exist('buffer','var') && itcnt < bufnt && it < nt
-        buffer(:,:,itcnt) = fdm(:,:,1);
-        itcnt = itcnt+1;
-    elseif exist('buffer','var') && itcnt == bufnt && it < nt;
-        buffer(:,:,itcnt) = fdm(:,:,1);
-        snapshot(:,:,(it-bufnt+1):it) = buffer;
-        itcnt = 1;
-    elseif exist('buffer','var') && it == nt
-        buffer(:,:,itcnt) = fdm(:,:,1);
-        snapshot(:,:,(it-itcnt+1):it) = buffer(:,:,1:itcnt);
-        itcnt = 1;
-    else
-        snapshot(:,:,it) = fdm(:,:,1);
-    end
+    snapshot(:,:,it) = fdm(:,:,1);
 end % time loop
 
 %data = data(21:nx-20,:);

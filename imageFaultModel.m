@@ -5,6 +5,7 @@ function imageFaultModel
 rootd = fileparts(mfilename('fullpath'));
 addpath(fullfile(rootd,'faultModelData'))
 addpath(fullfile(rootd,'rtm'))
+addpath(fullfile(rootd,'gpu'))
 addpath(fullfile(rootd,'plots'))
 addpath(fullfile(rootd,'fileReader'))
 resultsd = fullfile(rootd,'results');
@@ -38,7 +39,7 @@ readFromMem = true;
 %  NOTE: parallel-gpu is not implemented.
 % runMode = {'serial','parallel','parallel-gpu'};
 %runMode = {'serial','parallel'};
-runMode = {'parallel'};
+runMode = {'serial'};
 
 %% Model and Data Parameters
 units = {'m','s'};
