@@ -21,9 +21,18 @@ if strcmp(str,'init')
         fprintf(fid,'Host: %s\n',host);
         fprintf(fid,'Test: %s\n\n',test);
         fprintf(fid,'Start Time:\t%s\n',datestr(now));
+
+        % to console
+        fprintf('Host: %s\n',host);
+        fprintf('Test: %s\n\n',test);
+        fprintf('Start Time:\t%s\n',datestr(now));
     end
 elseif strcmp(str,'close')
     fprintf(fid,'\nEnd Time:\t%s\n',datestr(now));
+
+    % to console
+    fprintf('\nEnd Time:\t%s\n',datestr(now));
+
     fclose(fid);
     fid = [];
 elseif strcmp(str,'error')
@@ -34,6 +43,9 @@ elseif strcmp(str,'error')
     fprintf('\t\t%s\n\n',err.cause{1}.message);
 else
     fprintf(fid,str,varargin{:});
+
+    % to console
+    fprintf(str,varargin{:});
     if length(varargin)==1
         str = [str '\n'];
         fprintf(str,varargin{:});
