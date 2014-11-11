@@ -241,10 +241,11 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 
 
 	//it prablem
+#pragma omp parallel
 	for (int it = 1; it < nt; it++)
 	{
 
-#pragma omp parallel for
+#pragma omp for collapse(2)
 		for (int ix = 1; ix < nx-1; ix++)
 		{
 			for (int iz = 1; iz < nz - 1; iz++)
@@ -255,7 +256,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 			}
 		}
 
-#pragma omp parallel for
+#pragma omp for
 		for (int iz = 1; iz < nz-1; iz++)
 		{
 			fdm3[iz] = b[iz] * fdm2[iz] - fdm1[iz] +
@@ -265,7 +266,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 				+ fdm2[(nx - 1)*nz + iz - 1]);
 		}
 
-#pragma omp parallel for
+#pragma omp for
 		for (int ix = 1; ix < nx - 1; ix++)
 		{
 			fdm3[ix*nz] = b[ix*nz] * fdm2[ix*nz] - fdm1[ix*nz] +
@@ -275,25 +276,28 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 				fdm2[(ix - 1)*nz + nz - 1]);
 		}
 
-    //  % finite differencing at four corners (1,1), (nz,1), (1,nx), (nz,nx)
-		fdm3[0] = b[0] * fdm2[0] - fdm1[0] + a[0] * (fdm2[1] + fdm2[nz]);
-		fdm3[nz - 1] = b[nz - 1] * fdm2[nz - 1] - fdm1[nz - 1] +
-			a[nz - 1] * (fdm2[nz + nz - 1] + fdm2[nz - 2]);
-			//a[nz - 1] * (fdm2[nz + nz - 1] + fdm2[nz + (nz - 2)]); // BUGBUG
+#pragma omp single
+        {
+            //  % finite differencing at four corners (1,1), (nz,1), (1,nx), (nz,nx)
+            fdm3[0] = b[0] * fdm2[0] - fdm1[0] + a[0] * (fdm2[1] + fdm2[nz]);
+            fdm3[nz - 1] = b[nz - 1] * fdm2[nz - 1] - fdm1[nz - 1] +
+                a[nz - 1] * (fdm2[nz + nz - 1] + fdm2[nz - 2]);
+            //a[nz - 1] * (fdm2[nz + nz - 1] + fdm2[nz + (nz - 2)]); // BUGBUG
 
-		fdm3[(nx - 1)*nz] = b[(nx - 1)*nz] * fdm2[(nx - 1)*nz] - fdm1[(nx - 1)*nz] +
-			a[(nx - 1)*nz] * (fdm2[(nx - 2)*nz] + fdm2[(nx - 1)*nz + 1]);
-			//a[(nx - 1)*nz] * (fdm2[(nx - 1)*nz] + fdm2[(nx - 1)*nz + 1]); //BUGBUG
-		fdm3[(nx - 1)*nz + (nz - 1)] = b[(nx - 1)*nz + (nz - 1)] * fdm2[(nx - 1)*nz + (nz - 1)] - fdm1[(nx - 1)*nz + (nz - 1)] +
-			a[(nx - 1)*nz + (nz - 1)] * (fdm2[(nx - 1)*nz + (nz - 2)] + fdm2[(nx - 2)*nz + (nz - 1)]);
-			//a[(nx - 1)*nz + (nz - 1)] * (fdm2[(nx - 1)*nz + (nz - 2)] + fdm2[(nx - 1)*nz + (nz - 1)]); //BUGBUG
+            fdm3[(nx - 1)*nz] = b[(nx - 1)*nz] * fdm2[(nx - 1)*nz] - fdm1[(nx - 1)*nz] +
+                a[(nx - 1)*nz] * (fdm2[(nx - 2)*nz] + fdm2[(nx - 1)*nz + 1]);
+            //a[(nx - 1)*nz] * (fdm2[(nx - 1)*nz] + fdm2[(nx - 1)*nz + 1]); //BUGBUG
+            fdm3[(nx - 1)*nz + (nz - 1)] = b[(nx - 1)*nz + (nz - 1)] * fdm2[(nx - 1)*nz + (nz - 1)] - fdm1[(nx - 1)*nz + (nz - 1)] +
+                a[(nx - 1)*nz + (nz - 1)] * (fdm2[(nx - 1)*nz + (nz - 2)] + fdm2[(nx - 2)*nz + (nz - 1)]);
+            //a[(nx - 1)*nz + (nz - 1)] * (fdm2[(nx - 1)*nz + (nz - 2)] + fdm2[(nx - 1)*nz + (nz - 1)]); //BUGBUG
 
-		temp = fdm1;
-		fdm1 = fdm2;
-		fdm2 = fdm3;
-		fdm3 = temp;
+            temp = fdm1;
+            fdm1 = fdm2;
+            fdm2 = fdm3;
+            fdm3 = temp;
+        }
 
-#pragma omp parallel for
+#pragma omp for collapse(2)
 		for (int ix = 0; ix < 20; ix++)
 		{
 			for (int iz = 0; iz < nz - 20; iz++)
@@ -303,7 +307,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 			}
 		}
 
-#pragma omp parallel for
+#pragma omp for collapse(2)
 		for (int ix = nx - 20; ix < nx; ix++)
 		{
 			for (int iz = 0; iz < nz - 20; iz++)
@@ -313,8 +317,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 			}
 		}
 
-#pragma omp parallel for
-
+#pragma omp for collapse(2)
 		for (int ix = 0; ix < nx; ix++)
 		{
 			for (int iz = nz - 20; iz < nz; iz++)
@@ -325,7 +328,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 		}
 
 		int tempPoint = (nt-it-1)*nx*nz;
-#pragma omp parallel for
+#pragma omp for collapse(2)
 		for (int ix = 0; ix < nx; ix++)
 		{
 			for (int iz = 0; iz < nz; iz++)
