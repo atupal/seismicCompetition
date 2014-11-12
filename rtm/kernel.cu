@@ -1,4 +1,3 @@
-
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 #include "gpu/mxGPUArray.h"
@@ -29,10 +28,10 @@ void mexFunction(int plhs, mxArray *alhs[], const int prhs,
 		9.6464029348312264e-01, 9.7995365426708503e-01,
 		9.9104037877288398e-01, 9.9775252935263015e-01,
 		1.0000000000000000e+00 };
-	double * data = mxGetPr(arhs[1]);
 	double * v = mxGetPr(arhs[0]);
-	double  dt = mxGetPr(arhs[3])[0];
+	double * data = mxGetPr(arhs[1]);
 	double  dx = mxGetPr(arhs[2])[0];
+	double  dt = mxGetPr(arhs[3])[0];
 	alhs[0] = mxCreateDoubleMatrix(nz, nx, mxREAL);
 	double * M = mxGetPr(alhs[0]);
 	rtm2d_fm2d(v, data, boundary, M, nz, nx, nt, dt, dx);
@@ -400,3 +399,4 @@ void rtm2d_fm2d(double *v, double *data, double *boundary, double* M, int nz, in
 	checkCudaErrors(cudaFree(ddata));
 	return;
 }
+

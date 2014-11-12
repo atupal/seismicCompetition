@@ -39,12 +39,12 @@ void mexFunction(int plhs, mxArray *alhs[], const int prhs,
 
 void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, int nx, int nt, double dt, double dx)
 {
-	double * fdm1 = (double *)malloc(sizeof(double)*nz*nt);
-	double * fdm2 = (double *)malloc(sizeof(double)*nz*nt);
-	double * fdm3 = (double *)malloc(sizeof(double)*nz*nt);
-	memset(fdm1,0, sizeof(double)*nz*nx);
-	memset(fdm2,0, sizeof(double)*nz*nx);
-	memset(fdm3,0, sizeof(double)*nz*nx);
+	double * fdm1 = (double *)malloc(sizeof(double)*nz*nx);
+	double * fdm2 = (double *)malloc(sizeof(double)*nz*nx);
+	double * fdm3 = (double *)malloc(sizeof(double)*nz*nx);
+	//memset(fdm1,0, sizeof(double)*nz*nx);
+	//memset(fdm2,0, sizeof(double)*nz*nx);
+	//memset(fdm3,0, sizeof(double)*nz*nx);
 	double * b = (double *)malloc(sizeof(double)*nx*nz);
 	double * a = (double *)malloc(sizeof(double)*nz*nx);
 	//double dt_dx = dt / dx;
@@ -52,12 +52,17 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 	double * snapshot = (double*)malloc(sizeof(double)*nz*nx*nt);
 
 	//memset M to zero
-#pragma omp parallel for
+  //#pragma omp parallel for
 	for (int i = 0; i < nx; i++)
-		for (int j = 0; j < nz; j++)
+		for (int j = 0; j < nz; j++) {
 			M[i*nz + j] = 0.0;
+			fdm1[i*nz + j] = 0.0;
+			fdm2[i*nz + j] = 0.0;
+			fdm3[i*nz + j] = 0.0;
+    }
 
 	//initial fdm1,fdm2,fdm3
+  //#pragma omp parallel for
 	for (int ix = 0; ix < nx; ix++)
 	{
 		fdm1[ix*nz] = data[(nt - 1)*nx + ix];
@@ -65,7 +70,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 		fdm3[ix*nz] = data[(nt - 3)*nx + ix];
 	}
 
-#pragma omp parallel for
+  //#pragma omp parallel for
 	for (int ix = 0; ix < nx; ix++)
 	{
 		for (int j = 0; j < nz; j++)
@@ -78,13 +83,15 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 	}
 	int cz = 3;
 	int bz = 0;
+  //#pragma omp parallel for
 	for (int it = nt - 2; it >= 0; it--)
 	{
-		cz++;
+		//cz++;
+    cz = 3 + (nt-2) - it + 1;
 		bz = min(cz, nz);
 
 		//fdm1 and fdm2 dot boundary   0~20 and nx-20~nx-1
-#pragma omp parallel for
+    //#pragma omp parallel for
 		for (int ix = 0; ix < 20; ix++)
 		{
 			for (int iz = 0; iz < bz; iz++)
@@ -97,7 +104,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 		}
 		if (bz >= (nz - 19))
 		{
-#pragma omp parallel for
+      //#pragma omp parallel for
 			for (int ix = 0; ix < nx; ix++)
 			{
 				for (int iz = nz - 20; iz < bz; iz++)
@@ -108,7 +115,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 			}
 		}
 		int ez = (nz == bz) ? nz - 1 : bz;
-#pragma omp parallel for
+//#pragma omp parallel for
 		for (int ix = 1; ix < nx - 1; ix++)
 		{
 			for (int iz = 0; iz < bz; iz++)
@@ -116,7 +123,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 				fdm3[ix*nz + iz] -= fdm1[ix*nz + iz];
 			}
 		}
-#pragma omp parallel for
+//#pragma omp parallel for
 		for (int ix = 1; ix < nx - 1; ix++)
 		{
 			for (int iz = 1; iz < ez; iz++)
@@ -128,7 +135,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 					+ a[ix*nz + iz - 1] * fdm1[ix*nz + iz - 1];
 			}
 		}
-#pragma omp parallel for
+//#pragma omp parallel for
 		for (int ix = 1; ix < nx - 1; ix++)
 		{
 			fdm2[ix*nz] = b[ix*nz] * fdm1[ix*nz] + fdm2[ix*nz]
@@ -138,7 +145,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 		}
 		if (bz == nz)
 		{
-#pragma omp parallel for
+//#pragma omp parallel for
 			for (int ix = 1; ix < nx - 1; ix++)
 				fdm2[ix*nz + nz - 1] = b[ix*nz + nz - 1] * fdm1[ix*nz + nz - 1] + fdm2[ix*nz + nz - 1]
 				+ a[(ix + 1)*nz + nz - 1] * fdm1[(ix + 1)*nz + nz - 1]
@@ -148,7 +155,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 				+ a[nz + nz - 1] * fdm1[nz + nz - 1] + a[nz - 2] * fdm1[nz - 2];
 		}
 
-#pragma omp parallel for
+//#pragma omp parallel for
 		for (int iz = 1; iz < ez; iz++)
 		{
 			// time extrapolation at ix = 0
@@ -180,7 +187,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 		if (it > 1)
 		{
 			memset(fdm3, 0, sizeof(double)*nz*nx);
-#pragma omp parallel for 
+//#pragma omp parallel for 
 			for (int ix = 0; ix < nx; ix++)
 			{
 				//find a bug
@@ -189,7 +196,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 		}
 		else
 		{
-#pragma omp parallel for
+//#pragma omp parallel for
 			for (int ix = 0; ix < nx; ix++)
 			{
 				for (int iz = 0; iz < nz; iz++)
@@ -200,7 +207,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 		}
 
 		int ntt = nx*nz*it;
-#pragma omp parallel for
+//#pragma omp parallel for
 		for (int ix	= 0; ix < nx; ix++)
 		{
 			for (int iz = 0; iz < nz; iz++)
@@ -229,7 +236,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 	for (int it = 1; it < nt; it++)
 	{
 
-#pragma omp parallel for
+//#pragma omp parallel for
 		for (int ix = 1; ix < nx-1; ix++)
 		{
 			for (int iz = 1; iz < nz - 1; iz++)
@@ -240,7 +247,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 			}
 		}
 
-#pragma omp parallel for
+//#pragma omp parallel for
 		for (int iz = 1; iz < nz-1; iz++)
 		{
 			fdm3[iz] = b[iz] * fdm2[iz] - fdm1[iz] +
@@ -250,7 +257,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 				+ fdm2[(nx - 1)*nz + iz - 1]);
 		}
 
-#pragma omp parallel for
+//#pragma omp parallel for
 		for (int ix = 1; ix < nx - 1; ix++)
 		{
 			fdm3[ix*nz] = b[ix*nz] * fdm2[ix*nz] - fdm1[ix*nz] +
@@ -278,7 +285,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 		fdm2 = fdm3;
 		fdm3 = temp;
 
-#pragma omp parallel for 
+//#pragma omp parallel for 
 		for (int ix = 0; ix < 20; ix++)
 		{
 			for (int iz = 0; iz < nz - 20; iz++)
@@ -288,7 +295,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 			}
 		}
 
-#pragma omp parallel for 
+//#pragma omp parallel for 
 		for (int ix = nx - 20; ix < nx; ix++)
 		{
 			for (int iz = 0; iz < nz - 20; iz++)
@@ -298,8 +305,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 			}
 		}
 
-#pragma omp parallel for
-		
+//#pragma omp parallel for
 		for (int ix = 0; ix < nx; ix++)
 		{
 			for (int iz = nz - 20; iz < nz; iz++)
@@ -310,7 +316,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 		}
 
 		int tempPoint = (nt-it-1)*nx*nz;
-#pragma omp parallel for
+//#pragma omp parallel for
 		for (int ix = 0; ix < nx; ix++)
 		{
 			for (int iz = 0; iz < nz; iz++)
@@ -320,6 +326,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 			}
 		}
 	}
+
 	free(snapshot);
 	free(fdm1);
 	free(fdm2);

@@ -78,6 +78,7 @@ rtic = tic;
 %%% end
 
 M = rtm2d_fm2d_mex(V,currentShot,dx,dt);
+%M = kernel(V,currentShot,dx,dt);
 
 sw = repmat(0:nr-1,nz,1) + ixs;
 sw(sw>nr)=nr;

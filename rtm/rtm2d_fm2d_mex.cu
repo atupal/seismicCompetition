@@ -4,13 +4,21 @@
 #include <string.h>
 #include <stdlib.h>
 #include <cuda_runtime.h>
-#include <helper_cuda.h>
+#include "helper_cuda.h"
 
 #define min(ELE1,ELE2) (ELE1)>(ELE2)?(ELE2):(ELE1);
 #define GPUMALLOC(POINT,TYPE,SIZE) checkCudaErrors(cudaMalloc((void**)&(POINT),sizeof(TYPE)*(SIZE)))
 #define GPUMEMCPY(PON1,PON2,TYPE,SIZE,CPYDERICT) checkCudaErrors(cudaMemcpy(PON1,PON2,sizeof(TYPE)*(SIZE),CPYDERICT))
 typedef double * pdouble;
 
+
+__global__ void getAB(double *v, double *a, double *b,double *fdm1,double *fdm2,
+        double *fdm3,double *M,double * data,double dt,double dx, int nz, int nx,int nt);
+__global__ void rtm2d_kernel(double *fmd1,double *fdm2,double*fdm3,double*a,double*b,double*data,
+        double*boundary,double*snapshot,int nz,int nx,int nt,double dx,double dt,int it,int bz);
+__global__ void rtm2d_to_fm2d(double *fdm1,double *fdm2,double *fdm3,int nz,int nx);
+__global__ void fm2d_kernel(double *fmd1,double *fdm2,double*fdm3,double*a,double*b,
+        double*boundary,double*snapshot,double*M,int nz,int nx,int nt,double dx,double dt,int it,int bz);
 
 
 void rtm2d_fm2d(double *v, double *data,double *boundary, double* M, int nz, int nx, int nt, double dt, double dx);
@@ -73,35 +81,33 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 	{
 		cz++;
 		bz = min(cz, nz);
-        rtm2d_kernel<<<numBlocks,threadsPerBlocks>>>(dfmd1,dfdm2,dfdm3,da,db,
+        rtm2d_kernel<<<numBlocks,threadsPerBlocks>>>(dfdm1,dfdm2,dfdm3,da,db,ddata,
                 dboundary,dsnapshot,nz, nx, nt, dx, dt, it,bz);
-    }
+  }
 
-    rtm2d_to_fm2d<<<numBlocks,threadsPerBlocks>>>(dfdm1,dfdm2,dfdm3,nz,nx);
+  rtm2d_to_fm2d<<<numBlocks,threadsPerBlocks>>>(dfdm1,dfdm2,dfdm3,nz,nx);
 
-    for (int it = 1; it < nt; it++)
-    {
+  for (int it = 1; it < nt; it++)
+  {
 
-        fm2d_kernel<<<numBlocks,threadsPerBlocks>>>(dfdm1,dfdm2,dfdm3,da,db,dboundary,dsnapshot,dM,nz,
-                nx,nt,dx,dt,it,bz);
-    }
+      fm2d_kernel<<<numBlocks,threadsPerBlocks>>>(dfdm1,dfdm2,dfdm3,da,db,dboundary,dsnapshot,dM,nz,
+              nx,nt,dx,dt,it,bz);
+  }
 
-    GPUMEMCPY(M,dM,double,nx*nz,cudaMemcpyDeviceToHost);
-    checkCudaErrors(cudaFree(dM));
-    checkCudaErrors(cudaFree(dv));
-    checkCudaErrors(cudaFree(dsnapshot));
-    checkCudaErrors(cudaFree(ddata));
-    checkCudaErrors(cudaFree(dfdm3));
-    checkCudaErrors(cudaFree(dfdm2));
-    checkCudaErrors(cudaFree(dfdm1));
-    checkCudaErrors(cudaFree(db));
-    checkCudaErrors(cudaFree(da));
-    checkCudaErrors(cudaFree(dboundary));
-    return ;
-
-
-
+  GPUMEMCPY(M,dM,double,nx*nz,cudaMemcpyDeviceToHost);
+  checkCudaErrors(cudaFree(dM));
+  checkCudaErrors(cudaFree(dv));
+  checkCudaErrors(cudaFree(dsnapshot));
+  checkCudaErrors(cudaFree(ddata));
+  checkCudaErrors(cudaFree(dfdm3));
+  checkCudaErrors(cudaFree(dfdm2));
+  checkCudaErrors(cudaFree(dfdm1));
+  checkCudaErrors(cudaFree(db));
+  checkCudaErrors(cudaFree(da));
+  checkCudaErrors(cudaFree(dboundary));
+  return ;
 }
+
 __global__ void rtm2d_to_fm2d(double *fdm1,double *fdm2,double *fdm3,int nz,int nx)
 {
     int idx = threadIdx.x + blockIdx.x*blockDim.x;
@@ -155,7 +161,7 @@ __global__ void getAB(double *v, double *a, double *b,double *fdm1,double *fdm2,
 }
 
 
-__global__ void rtm2d_kernel(double *fmd1,double *fdm2,double*fdm3,double*a,double*b,
+__global__ void rtm2d_kernel(double *fdm1,double *fdm2,double*fdm3,double*a,double*b,double*data,
         double*boundary,double*snapshot,int nz,int nx,int nt,double dx,double dt,int it,int bz)
 {
     int idx=threadIdx.x+blockIdx.x*blockDim.x;
@@ -257,6 +263,10 @@ __global__ void rtm2d_kernel(double *fmd1,double *fdm2,double*fdm3,double*a,doub
                 {
                     fdm3[ix*nz]=0.0;
                 }
+            } 
+            else 
+            {
+                fdm3[ix*nz + iz] = fdm2[ix*nz + iz];
             }
 
             snapshot[ntt + ix*nz + iz] = fdm1[ix*nz + iz];
@@ -264,14 +274,14 @@ __global__ void rtm2d_kernel(double *fmd1,double *fdm2,double*fdm3,double*a,doub
     }
 }
 
-fdm2[ix*nz+iz]=fdm1[ix*nz+iz];
-fdm1[ix*nz+iz]=0.0;
-fdm3[ix*nz+iz]=0.0;
+//fdm2[ix*nz+iz]=fdm1[ix*nz+iz];
+//fdm1[ix*nz+iz]=0.0;
+//fdm3[ix*nz+iz]=0.0;
 
 
 
 
-__global__ void fm2d_kernel(double *fmd1,double *fdm2,double*fdm3,double*a,double*b,
+__global__ void fm2d_kernel(double *fdm1,double *fdm2,double*fdm3,double*a,double*b,
         double*boundary,double*snapshot,double*M,int nz,int nx,int nt,double dx,double dt,int it,int bz)
 {
     int idx=threadIdx.x+blockIdx.x*blockDim.x;
