@@ -14,15 +14,6 @@
 
 void rtm2d_fm2d(double *v, double *data,double *boundary, double* M, int nz, int nx, int nt, double dt, double dx);
 
-char *itoa(int v) {
-    static char ss[100];
-    ss[99] = '\0';
-    int i;
-    for (i = 98; v; i--, v /= 10) {
-        ss[i] = (v % 10) + '0';
-    }
-    return ss + i + 1;
-}
 
 void mexFunction(int plhs, mxArray *alhs[], const int prhs,
     const mxArray *arhs[])
@@ -60,8 +51,9 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
     int shmid;
     char *shm;
     int key = 12345 + pid;
+    int shmsize = (nx * nz + nx * nt + 20 + nz * nx) * sizeof(double) + 3 * sizeof(int) + 2 * sizeof(double);
 
-    if ((shmid = shmget(key, (nx * nz + nx * nt + 20 + nz * nx) * sizeof(double) + 3 * sizeof(int) + 2 * sizeof(double), IPC_CREAT | 0666)) < 0) {
+    if ((shmid = shmget(key, shmsize, IPC_CREAT | 0666)) < 0) {
         perror("shmget");
         exit(1);
     }
@@ -83,14 +75,10 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
     COPY_TO_SHM(data, nx * nt * sizeof(double));
     COPY_TO_SHM(boundary, 20 * sizeof(double));
 
-    pid_t child_pid = fork();
 
-    if (child_pid == 0) {
-        if (execl("rtm/rtm2d_fm2d_mex.core", "main", itoa(key), NULL) < 0)
-            exit(1);
-    } else {
-        waitpid(pid, NULL, 0);
-    }
+    char systemargs[1000];
+    snprintf(systemargs, 999, "rtm/rtm2d_fm2d_mex.core %d %d", key, shmsize);
+    system(systemargs);
 
 
     COPY_TO_LOCAL(M, nx * nz * sizeof(double));
