@@ -8,7 +8,7 @@
 %   upperenv: upper envelope of the input signal
 %   lowerenv: lower envelope of the input signal
 function [upperenv, lowerenv] = envelope(sig, method)
-if nargin == 1 
+if nargin == 1
     method = 'linear';
 end
 upperind = find(diff(sign(diff(sig))) < 0) + 1;
@@ -18,7 +18,7 @@ l = length(sig);
 try
     upperind = [f upperind l];
     lowerind = [f lowerind l];
-catch 
+catch
     upperind = [f; upperind; l];
     lowerind = [f; lowerind; l];
 end

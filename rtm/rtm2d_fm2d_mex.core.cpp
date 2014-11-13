@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <sys/sem.h>
 #include "shm_copy_common.h"
 #define min(ELE1,ELE2) (ELE1)>(ELE2)?(ELE2):(ELE1);
 
@@ -20,9 +21,33 @@ int itoa(char *s) {
     return v;
 }
 
+
+int semkey = 12391;
+
+void semlock() {
+    int semid = semget(semkey, 1, 0666);
+    if (semid < 0) return;
+    struct sembuf sem;
+    sem.sem_num = 0;
+    sem.sem_op = -1;
+    sem.sem_flg = 0;
+    if (semop(semid, &sem, 1) < 0) perror("semop");
+}
+
+void semrelease() {
+    int semid = semget(semkey, 1, 0666);
+    if (semid < 0) return;
+    struct sembuf sem;
+    sem.sem_num = 0;
+    sem.sem_op = 1;
+    sem.sem_flg = 0;
+    semop(semid, &sem, 1);
+}
+
 int main(int argc, char *argv[]) {
     int shmkey = itoa(argv[1]);
     int shmsize = itoa(argv[2]);
+
 
     int shmid;
 
@@ -85,6 +110,8 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 	double * temp = NULL;
 	double * snapshot = (double*)malloc(sizeof(double)*nz*nx*nt);
 
+    semlock();
+
 	//memset M to zero
 #pragma omp parallel for
 	for (int i = 0; i < nx; i++)
@@ -101,9 +128,10 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 		fdm3[ix*nz] = data[(nt - 3)*nx + ix];
 	}
 
-#pragma omp parallel for collapse(2)
+#pragma omp parallel for
 	for (int ix = 0; ix < nx; ix++)
 	{
+#pragma simd
 		for (int j = 0; j < nz; j++)
 		{
       double tmp = v[ix*nz + j] * dt / dx;
@@ -277,7 +305,6 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 	memset(fdm3, 0, sizeof(double)*nz*nx);
 
 
-
 	//it prablem
 #pragma omp parallel
 	for (int it = 1; it < nt; it++)
@@ -381,6 +408,9 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 			}
 		}
 	}
+
+    semrelease();
+
 	free(snapshot);
 	free(fdm1);
 	free(fdm2);

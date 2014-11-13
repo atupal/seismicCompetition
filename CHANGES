@@ -1,0 +1,76 @@
+All files have been update for auto-indenting, deletion of trailing
+whitespaces and DOS to Unix CR/LF to LF conversion.  Therefore there
+may be cosmetically different, which are not listed here.
+
+seismicCompetition
+   faultModelData           : Moved to
+                              ../SEGY-files/SummerFaultModelData
+
+   fileReader/
+      SegYFileReader.m      : Initialize number of samples if number of
+              		      sample is <=0
+
+   imageFaultModel.m        : Merged into imageModel.m
+
+[NEW] imageModelData.m      : Merged from imageFaultModel.m and
+   			      imageSaltToothModel.m
+
+   imageSaltToothtModel.m   : Merged into imageModel.m
+
+   plots/
+      plotSeismicProgress.m : Because the parallel simulations can run
+                              in any order, the "Current Shot" is not
+			      neccessarily how many shot records have
+			      been processed.  Added an iteration
+			      counter on the title.
+
+   private/
+      LOGGER.m              : Fixed bug when logging on Linux rather
+            		      than Windows (file name was losing the
+			      first two characters on Linux when it
+			      shouldn't have).  Added error messages.
+
+   processShotRecords.m     : Pass in the name of the velocity model and
+                              shot records, and then persist the data
+                              between iterations rather than
+                              unnecessarily re-reading the same data
+                              files with each iteration.
+
+[NEW] results/
+      SummerFault_SampleRun_parallel.fig     : Summer Fault figure
+      					       (parallel run)
+      SummerFault_SampleRun_parallel.mat     : Summer Fault stacked
+      					       images (parallel run)
+      SummerFault_SampleRun_serial.fig	     : Summer Fault figure
+      					       (serial run)
+      SummerFault_SampleRun_serial.mat	     : Summer Fault stacked
+      					       images (serial run)
+
+      SummerSaltTooth_SampleRun_parallel.fig : Summer Salt Tooth
+      					       figure (parallel run)
+      SummerSaltTooth_SampleRun_parallel.mat : Summer Salt Tooth
+      					       stacked images
+                                               (parallel run)
+      SummerSaltTooth_SampleRun_serial.fig   : Summer Salt Tooth
+      					       figure (serial run)
+      SummerSaltTooth_SampleRun_serial.mat   : Summer Salt Tooth
+      					       stacked images (serial
+					       run)
+
+   rtm/
+      fm2d.m			  : Preallocate with ones, rather than
+      				    zeros.
+      rtm2d.m           	  : Preallocate with ones, rather than
+      				    zeros.
+
+   saltToothModelData             : Moved to
+                                    ../SEGY-files/SummerSaltToothModelData
+
+   SeismicAnalysisCompetition.m   : Updated for competition.  Fixed typo.
+
+[NEW] support
+      diffStackedImages.p	  : Difference tools to compare to two
+      				    stacked images files
+      displayFigure.m		  : Recreate display from test run
+      LoadSummerFaultParams.m 	  : Shot records parameters
+      LoadSummerSaltToothParams.m : Shot records parameters
