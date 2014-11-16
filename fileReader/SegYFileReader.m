@@ -432,6 +432,44 @@ classdef SegYFileReader < SeismicFileReader
                 end
             end
         end % subsref
+        
+        function varargout = size(obj,dim)
+            cols = obj.NumberOfTraces;
+            traceInfo = obj.TraceDescription;
+            if isempty(traceInfo)
+                readTraceHeader(obj);
+                traceInfo = obj.TraceDescription;
+            end
+            rows = traceInfo(1).NumberOfSamples;
+            if ~exist('dim','var')
+                dim = [];
+            end
+            
+            if dim == 1
+                D = rows;
+            elseif dim == 2
+                D = cols;
+            else
+                D = [rows, cols];
+            end
+            
+            switch nargout
+                case {0, 1}
+                    varargout{1} = D;
+                otherwise
+                    for i = 1:nargout
+                        if i > length(D)
+                            varargout{i} = [];
+                        else
+                            varargout{i} = D(i);
+                        end
+                    end
+            end
+        end % size
+        
+        function out = end(obj,k,n)
+            out = size(obj,k);
+        end % end
     end % methods
 
     methods (Static)

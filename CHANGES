@@ -9,8 +9,14 @@ seismicCompetition
    fileReader/
       SegYFileReader.m      : Initialize number of samples if number of
               		      sample is <=0
+			    : [Conference Patch] Fixed "end" bug
+                              (e.g. v(:,end))
 
    imageFaultModel.m        : Merged into imageModel.m
+			    : [Conference Patch] Added try/catch to
+			      catch any fetch errors.  tic/toc have
+			      been adjusted for parallel runs to make
+			      it more consistent with serial runs.
 
 [NEW] imageModelData.m      : Merged from imageFaultModel.m and
    			      imageSaltToothModel.m
@@ -29,6 +35,9 @@ seismicCompetition
             		      than Windows (file name was losing the
 			      first two characters on Linux when it
 			      shouldn't have).  Added error messages.
+			    : [Conference Patch] Increased message and
+			      cause statements in case an error is
+			      thrown
 
    processShotRecords.m     : Pass in the name of the velocity model and
                               shot records, and then persist the data
@@ -37,6 +46,9 @@ seismicCompetition
                               files with each iteration.
 
 [NEW] results/
+      [Conference Patch] Updated to reflect new SampleRuns from
+      SegYFileReader "end" bug.
+
       SummerFault_SampleRun_parallel.fig     : Summer Fault figure
       					       (parallel run)
       SummerFault_SampleRun_parallel.mat     : Summer Fault stacked

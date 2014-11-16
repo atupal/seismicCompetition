@@ -28,22 +28,31 @@ elseif strcmp(str,'close')
     fid = [];
 elseif strcmp(str,'error')
     err = varargin{1};
-    if isempty(err.cause)==true
-        fprintf(fid,'\n*** %s ***\n',err.message);
-    else
-        fprintf(fid,'\n*** %s ***\n',err.cause{1}.identifier);
-        fprintf(fid,'\t\t%s\n\n',err.cause{1}.message);
-        fprintf('\n*** %s ***\n',err.cause{1}.identifier);
-        fprintf('\t\t%s\n\n',err.cause{1}.message);
+
+    displayException(fid,err)
+
+    if isempty(err.cause)==false
+        for cidx = 1:length(err.cause{:})
+            displayException(fid,err.cause{cidx})
+        end
     end
 else
     if isempty(fid)
         error('Must first call %s(''init'')',mfilename)
     end
     fprintf(fid,str,varargin{:});
-    fprintf(str,varargin{:});
     if length(varargin)==1
         str = [str '\n'];
         fprintf(str,varargin{:});
     end
+end
+
+function displayException(fid,err)
+
+fprintf('\n*** %s:%s ***\n',err.identifier,err.message);
+fprintf(fid,'\n*** %s:%s ***\n',err.identifier,err.message);
+
+for sidx = 1:length(err.stack)
+    fprintf('\t\t%s:%d\n',err.stack(sidx).file,err.stack(sidx).line);
+    fprintf(fid,'\t\t%s:%d\n',err.stack(sidx).file,err.stack(sidx).line);
 end
