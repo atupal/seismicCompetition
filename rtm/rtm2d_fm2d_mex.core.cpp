@@ -7,6 +7,7 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/sem.h>
+#include <mkl.h>
 #include "shm_copy_common.h"
 #define min(ELE1,ELE2) (ELE1)>(ELE2)?(ELE2):(ELE1);
 
@@ -74,16 +75,16 @@ int main(int argc, char *argv[]) {
     COPY_TO_LOCAL(&dt, sizeof(double));
     COPY_TO_LOCAL(&dx, sizeof(double));
 
-    double *v = (double *)(malloc(nx * nz * sizeof(double)));
+    double *v = (double *)(mkl_malloc(nx * nz * sizeof(double)),64);
     COPY_TO_LOCAL(v, sizeof(double) * nx * nz);
 
-    double *data = (double *)(malloc(nx * nt * sizeof(double)));
+    double *data = (double *)(mkl_malloc(nx * nt * sizeof(double)),64);
     COPY_TO_LOCAL(data, sizeof(double) * nx * nt);
 
-    double *boundary = (double *)malloc(20 * sizeof(double));
+    double *boundary = (double *)mkl_malloc(20 * sizeof(double),64);
     COPY_TO_LOCAL(boundary, 20 * sizeof(double));
 
-    double *M = (double *)(malloc(nx * nz * sizeof(double)));
+    double *M = (double *)(mkl_malloc(nx * nz * sizeof(double)),64);
 
 
 
@@ -91,6 +92,10 @@ int main(int argc, char *argv[]) {
 
 
     COPY_TO_SHM(M, sizeof(double) * nx * nz);
+    mkl_free(v);
+    mkl_free(data);
+    mkl_free(boundary);
+    mkl_free(M);
 
 
     exit(0);
@@ -98,17 +103,17 @@ int main(int argc, char *argv[]) {
 
 void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, int nx, int nt, double dt, double dx)
 {
-	double * fdm1 = (double *)malloc(sizeof(double)*nz*nt);
-	double * fdm2 = (double *)malloc(sizeof(double)*nz*nt);
-	double * fdm3 = (double *)malloc(sizeof(double)*nz*nt);
+	double * fdm1 = (double *)mkl_malloc(sizeof(double)*nz*nt,64);
+	double * fdm2 = (double *)mkl_malloc(sizeof(double)*nz*nt,64);
+	double * fdm3 = (double *)mkl_malloc(sizeof(double)*nz*nt,64);
 	memset(fdm1,0, sizeof(double)*nz*nx);
 	memset(fdm2,0, sizeof(double)*nz*nx);
 	memset(fdm3,0, sizeof(double)*nz*nx);
-	double * b = (double *)malloc(sizeof(double)*nx*nz);
-	double * a = (double *)malloc(sizeof(double)*nz*nx);
+	double * b = (double *)mkl_malloc(sizeof(double)*nx*nz,64);
+	double * a = (double *)mkl_malloc(sizeof(double)*nz*nx,64);
 	//double dt_dx = dt / dx;
 	double * temp = NULL;
-	double * snapshot = (double*)malloc(sizeof(double)*nz*nx*nt);
+	double * snapshot = (double*)mkl_malloc(sizeof(double)*nz*nx*nt,64);
 
     semlock();
 
@@ -411,10 +416,10 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 
     semrelease();
 
-	free(snapshot);
-	free(fdm1);
-	free(fdm2);
-	free(fdm3);
-	free(a);
-	free(b);
+	mkl_free(snapshot);
+	mkl_free(fdm1);
+	mkl_free(fdm2);
+	mkl_free(fdm3);
+	mkl_free(a);
+	mkl_free(b);
 }

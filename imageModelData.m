@@ -129,11 +129,8 @@ for runCase = 1:length(runMode)
             for ixs = 1:ns
                 stic = tic;
                 [dM,indv,inds] = processShotRecords(v,shot,ixs,ixwin,nxwin,ntr,nz,nx,nr,nt,dsx,dx,dt,ss);
-                tserial = toc(stic) + tserial;
-                if mod(ixs,100)==0 || ixs==ns
-                    disp(['Completed: ' num2str(ixs) '/' num2str(ns)])
-                end
                 Stacked(:,indv(1):indv(end)) = dM + Stacked(:,indv(1):indv(end));
+                tserial = toc(stic) + tserial;
                 LOGGER('Total processing time through iter %04d: %s\n',ixs,hms(tserial))
                 plotSeismicProgress(units,x,z,velocityModel,t,shot(:,inds)'*ss,dM,Stacked,ixs,[indv(1),indv(end)],tserial,ixs)
             end
@@ -178,31 +175,18 @@ for runCase = 1:length(runMode)
             % Collect data and update plot as results come back
             try
                 for ixs = 1:ns
-                    caught_fetch_error_flag = false;
                     % Fetch next available block
-                    try
-                        [IXS,dM,indv,inds] = fetchNext(f);
-                    catch E
-                        % There could be several reasons the fetch
-                        % fails.  We don't want to long jump out of
-                        % here, but we don't want to stack and plot
-                        % bad results.  So flag the issue and then
-                        % move onto the next future.
-                        LOGGER('error',E)
-                        caught_fetch_error_flag = true;
-                    end
-                    % What is the processing time
-                    tparallel = toc(ptic);
+                    [IXS,dM,indv,inds] = fetchNext(f);
                     if mod(ixs,100)==0 || ixs==ns
                         disp(['Completed: ' num2str(ixs) '/' num2str(ns)])
                     end
-                    if caught_fetch_error_flag==false
-                        % Store results in final image
-                        Stacked(:,indv(1):indv(end)) = dM + Stacked(:,indv(1):indv(end));
-                        % Show current plot
-                        plotSeismicProgress(units,x,z,velocityModel,t,shot(:,inds)'*ss,dM,Stacked,IXS,[indv(1),indv(end)],tparallel,ixs)
-                    end
+                    % Store results in final image
+                    Stacked(:,indv(1):indv(end)) = dM + Stacked(:,indv(1):indv(end));
+                    % What is the processing time
+                    tparallel = toc(ptic);
                     LOGGER('Total processing time through iter %04d: %s\n',ixs,hms(tparallel))
+                    % Show current plot
+                    plotSeismicProgress(units,x,z,velocityModel,t,shot(:,inds)'*ss,dM,Stacked,IXS,[indv(1),indv(end)],tparallel,ixs)
                 end
             catch E
                 LOGGER('error',E)
@@ -221,11 +205,63 @@ for runCase = 1:length(runMode)
             
             % NOTE: LEFT TO THE USER IF SO CHOOSEN TO DO SO.  IT IS
             % NOT A REQUIREMENT TO IMPLEMENT A GPU VERSION OF THE CODE.
-            
+
             LOGGER('\nPARALLEL-GPU RUN\n')
             imageFigure('Parallel-GPU')
             
-            tgpu = 0;
+            % Get the current pool
+            p = gcp('nocreate');
+            if isempty(p)
+                error('Cannot run runmode as ''parallel'' unless a parallel pool has been started.  Use parpool to start a new pool.')
+            end
+            
+            %            if commonFs==false
+            %                af = {fullfile(rootd,'fileReader'), fullfile(rootd,'rtm')};
+            %                addAttachedFiles(p,af)
+            %            end
+            
+            LOGGER(['Number of Workers: ' num2str(p.NumWorkers) '\n'])
+            
+            ptic = tic;
+            tparallel = 0;
+            for ixs = 1:ns
+                % Submit futures
+                if commonFs==true
+                    f(ixs) = parfeval(p,@processShotRecords_gpu,3, ...
+                        v,shot, ...
+                        ixs,ixwin,nxwin,ntr,nz,nx,nr,nt,dsx,dx,dt,ss); %#ok<AGROW>
+                else
+                    f(ixs) = parfeval(p,@processShotRecords_gpu,3, ...
+                        remoteVelocityFile,remoteShotFiles, ...
+                        ixs,ixwin,nxwin,ntr,nz,nx,nr,nt,dsx,dx,dt,ss); %#ok<AGROW>
+                end
+            end
+            
+            % Collect data and update plot as results come back
+            try
+                for ixs = 1:ns
+                    % Fetch next available block
+                    [IXS,dM,indv,inds] = fetchNext(f);
+                    if mod(ixs,100)==0 || ixs==ns
+                        disp(['Completed: ' num2str(ixs) '/' num2str(ns)])
+                    end
+                    % Store results in final image
+                    Stacked(:,indv(1):indv(end)) = dM + Stacked(:,indv(1):indv(end));
+                    % What is the processing time
+                    tparallel = toc(ptic);
+                    LOGGER('Total processing time through iter %04d: %s\n',ixs,hms(tparallel))
+                    % Show current plot
+                    plotSeismicProgress(units,x,z,velocityModel,t,shot(:,inds)'*ss,dM,Stacked,IXS,[indv(1),indv(end)],tparallel,ixs)
+                end
+            catch E
+                LOGGER('error',E)
+                
+                % If there's any error, cancel any queued or running future
+                if isempty(f)==false
+                    cancel(f)
+                end
+            end
+ 
             
             LOGGER('Processing time for parallel-gpu run:\t %s\n',hms(tgpu))
             save(fullfile(resultsd,[resultsfile '_parallel-gpu']),'Stacked')
