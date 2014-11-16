@@ -157,7 +157,8 @@ static void info_helper(const mxArray **info)
   const mxArray *rhs63 = NULL;
   const mxArray *lhs63 = NULL;
   emlrtAddField(*info, emlrt_marshallOut(
-    "[E]/home/atupal/src/sc14/seismicCompetition/rtm/rtm2d.m"), "context", 0);
+    "[E]/home/atupal/src/sc14/seismicCompetition-final/rtm/rtm2d.m"), "context",
+                0);
   emlrtAddField(*info, emlrt_marshallOut("all"), "name", 0);
   emlrtAddField(*info, emlrt_marshallOut("logical"), "dominantType", 0);
   emlrtAddField(*info, emlrt_marshallOut(
@@ -280,7 +281,8 @@ static void info_helper(const mxArray **info)
   emlrtAddField(*info, emlrtAliasP(rhs7), "rhs", 7);
   emlrtAddField(*info, emlrtAliasP(lhs7), "lhs", 7);
   emlrtAddField(*info, emlrt_marshallOut(
-    "[E]/home/atupal/src/sc14/seismicCompetition/rtm/rtm2d.m"), "context", 8);
+    "[E]/home/atupal/src/sc14/seismicCompetition-final/rtm/rtm2d.m"), "context",
+                8);
   emlrtAddField(*info, emlrt_marshallOut("colon"), "name", 8);
   emlrtAddField(*info, emlrt_marshallOut("double"), "dominantType", 8);
   emlrtAddField(*info, emlrt_marshallOut(
@@ -782,7 +784,8 @@ static void info_helper(const mxArray **info)
   emlrtAddField(*info, emlrtAliasP(rhs40), "rhs", 40);
   emlrtAddField(*info, emlrtAliasP(lhs40), "lhs", 40);
   emlrtAddField(*info, emlrt_marshallOut(
-    "[E]/home/atupal/src/sc14/seismicCompetition/rtm/rtm2d.m"), "context", 41);
+    "[E]/home/atupal/src/sc14/seismicCompetition-final/rtm/rtm2d.m"), "context",
+                41);
   emlrtAddField(*info, emlrt_marshallOut("eml_mtimes_helper"), "name", 41);
   emlrtAddField(*info, emlrt_marshallOut(""), "dominantType", 41);
   emlrtAddField(*info, emlrt_marshallOut(
@@ -814,7 +817,8 @@ static void info_helper(const mxArray **info)
   emlrtAddField(*info, emlrtAliasP(rhs42), "rhs", 42);
   emlrtAddField(*info, emlrtAliasP(lhs42), "lhs", 42);
   emlrtAddField(*info, emlrt_marshallOut(
-    "[E]/home/atupal/src/sc14/seismicCompetition/rtm/rtm2d.m"), "context", 43);
+    "[E]/home/atupal/src/sc14/seismicCompetition-final/rtm/rtm2d.m"), "context",
+                43);
   emlrtAddField(*info, emlrt_marshallOut("power"), "name", 43);
   emlrtAddField(*info, emlrt_marshallOut("double"), "dominantType", 43);
   emlrtAddField(*info, emlrt_marshallOut(
@@ -924,7 +928,8 @@ static void info_helper(const mxArray **info)
   emlrtAddField(*info, emlrtAliasP(rhs49), "rhs", 49);
   emlrtAddField(*info, emlrtAliasP(lhs49), "lhs", 49);
   emlrtAddField(*info, emlrt_marshallOut(
-    "[E]/home/atupal/src/sc14/seismicCompetition/rtm/rtm2d.m"), "context", 50);
+    "[E]/home/atupal/src/sc14/seismicCompetition-final/rtm/rtm2d.m"), "context",
+                50);
   emlrtAddField(*info, emlrt_marshallOut("exp"), "name", 50);
   emlrtAddField(*info, emlrt_marshallOut("double"), "dominantType", 50);
   emlrtAddField(*info, emlrt_marshallOut(
@@ -953,7 +958,8 @@ static void info_helper(const mxArray **info)
   emlrtAddField(*info, emlrtAliasP(rhs51), "rhs", 51);
   emlrtAddField(*info, emlrtAliasP(lhs51), "lhs", 51);
   emlrtAddField(*info, emlrt_marshallOut(
-    "[E]/home/atupal/src/sc14/seismicCompetition/rtm/rtm2d.m"), "context", 52);
+    "[E]/home/atupal/src/sc14/seismicCompetition-final/rtm/rtm2d.m"), "context",
+                52);
   emlrtAddField(*info, emlrt_marshallOut("mrdivide"), "name", 52);
   emlrtAddField(*info, emlrt_marshallOut("double"), "dominantType", 52);
   emlrtAddField(*info, emlrt_marshallOut(
@@ -1646,7 +1652,8 @@ static void b_info_helper(const mxArray **info)
   emlrtAddField(*info, emlrtAliasP(rhs82), "rhs", 82);
   emlrtAddField(*info, emlrtAliasP(lhs82), "lhs", 82);
   emlrtAddField(*info, emlrt_marshallOut(
-    "[E]/home/atupal/src/sc14/seismicCompetition/rtm/rtm2d.m"), "context", 83);
+    "[E]/home/atupal/src/sc14/seismicCompetition-final/rtm/rtm2d.m"), "context",
+                83);
   emlrtAddField(*info, emlrt_marshallOut("min"), "name", 83);
   emlrtAddField(*info, emlrt_marshallOut("double"), "dominantType", 83);
   emlrtAddField(*info, emlrt_marshallOut(

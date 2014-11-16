@@ -16,16 +16,6 @@ function [data,snapshot] = fm2d(v,model,dx,nt,dt)
 %v = [repmat(v(:,1),1,20), v, repmat(v(:,end),1,20)];
 %v(end+20,:) = v(end,:);
 %% Initialize storage
-assert(isa(model, 'double'));
-assert(all(size(model)<=[120, 50]));
-assert(isa(v, 'double'));
-assert(all(size(v)<=[120 50]));
-assert(isa(dx, 'double'));
-assert(all(size(dx)==[1]));
-assert(isa(dt, 'double'));
-assert(all(size(dt)==[1]));
-assert(isa(nt, 'double'));
-assert(all(size(nt)==[1]));
 [nz,nx] = size(model);
 data = zeros(nx,nt);
 fdm  = zeros(nz,nx,3);
@@ -48,7 +38,7 @@ iz   = 2:(nz-1);     % interior z
 ix   = 2:(nx-1);     % interior x
 izb  = 1:nz-20;      % boundary z
 
-snapshot = zeros(nz,nx,nt);
+snapshot = ones(nz,nx,nt);
 
 for it = 2:nt
     % finite differencing on interior

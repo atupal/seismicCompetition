@@ -10,7 +10,7 @@ if strcmp(str,'init')
     rootd = varargin{1};
     test = varargin{2};
     file = strrep(fullfile(rootd,[test '_' datestr(now) '.txt']),' ','_');
-    %file = strrep(file(3:end),':','-');
+    file = [file(1:2) strrep(file(3:end),':','-')];
     if isempty(fid)
         fid = fopen(file,'wt');
         if fid<0
@@ -21,30 +21,26 @@ if strcmp(str,'init')
         fprintf(fid,'Host: %s\n',host);
         fprintf(fid,'Test: %s\n\n',test);
         fprintf(fid,'Start Time:\t%s\n',datestr(now));
-
-        % to console
-        fprintf('Host: %s\n',host);
-        fprintf('Test: %s\n\n',test);
-        fprintf('Start Time:\t%s\n',datestr(now));
     end
 elseif strcmp(str,'close')
     fprintf(fid,'\nEnd Time:\t%s\n',datestr(now));
-
-    % to console
-    fprintf('\nEnd Time:\t%s\n',datestr(now));
-
     fclose(fid);
     fid = [];
 elseif strcmp(str,'error')
     err = varargin{1};
-    fprintf(fid,'\n*** %s ***\n',err.cause{1}.identifier);
-    fprintf(fid,'\t\t%s\n\n',err.cause{1}.message);
-    fprintf('\n*** %s ***\n',err.cause{1}.identifier);
-    fprintf('\t\t%s\n\n',err.cause{1}.message);
+    if isempty(err.cause)==true
+        fprintf(fid,'\n*** %s ***\n',err.message);
+    else
+        fprintf(fid,'\n*** %s ***\n',err.cause{1}.identifier);
+        fprintf(fid,'\t\t%s\n\n',err.cause{1}.message);
+        fprintf('\n*** %s ***\n',err.cause{1}.identifier);
+        fprintf('\t\t%s\n\n',err.cause{1}.message);
+    end
 else
+    if isempty(fid)
+        error('Must first call %s(''init'')',mfilename)
+    end
     fprintf(fid,str,varargin{:});
-
-    % to console
     fprintf(str,varargin{:});
     if length(varargin)==1
         str = [str '\n'];

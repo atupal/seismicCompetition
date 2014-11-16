@@ -130,7 +130,7 @@ sw(sw>nr)=nr;
 
 [nz,nx] = size(V);
 [~,nt] = size(currentShot);
-M = rtm2d_fm2d_mex(V,currentShot,dx,dt);
+M = kernel_new(V,currentShot,dx,dt);
 fprintf('C\n')
 fprintf(hms(toc(stic)));
 fprintf('\n');

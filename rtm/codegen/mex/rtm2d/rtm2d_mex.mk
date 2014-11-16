@@ -1,4 +1,4 @@
-START_DIR = /home/atupal/src/sc14/seismicCompetition/rtm
+START_DIR = /home/atupal/src/sc14/seismicCompetition-final/rtm
 
 MATLAB_ROOT = /matlab
 MAKEFILE = rtm2d_mex.mk

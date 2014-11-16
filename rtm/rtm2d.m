@@ -22,9 +22,10 @@ assert(isa(dx, 'double'));
 assert(all(size(dx)==[1]));
 assert(isa(dt, 'double'));
 assert(all(size(dt)==[1]));
+
 [nz,nx] = size(v);
 [~,nt] = size(data);
-fdm  = zeros(nz,nx,3);
+fdm  = zeros(nz,nx,3,'double');
 
 %% Boundary Absorbing Model
 iz = 1:20;
@@ -45,8 +46,7 @@ ixb  = 1:20;         % boundary x (right)
 ixb2 = nx-19:nx;     % boundary x (left)
 
 cz = 3;
-
-snapshot = zeros(nz,nx,nt);
+snapshot = ones(nz,nx,nt);
 for it = (nt-1):-1:1
     cz = cz+1;
     bz = min(cz,nz);
@@ -130,7 +130,7 @@ for it = (nt-1):-1:1
     if it > 2
         fdm(2:nz,:,3) = 0;
         fdm(1,:,3) = data(:,it-2);
-    end  
+    end
     
     %{
     figure(3), imagesc(diff(fdm(:,:,1),2,1))
@@ -143,7 +143,7 @@ for it = (nt-1):-1:1
     end
     %}
     snapshot(:,:,it) = fdm(:,:,1);
-        
+    
 end % time loop
 
 % write out final wavefield
