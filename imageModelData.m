@@ -52,6 +52,7 @@ addpath(fullfile(rootd,'rtm'))
 addpath(fullfile(rootd,'plots'))
 addpath(fullfile(rootd,'fileReader'))
 addpath(fullfile(rootd,'support'))
+addpath(fullfile(rootd,'SegyMAT'))
 resultsd = fullfile(rootd,'results');
 addpath(resultsd)
 

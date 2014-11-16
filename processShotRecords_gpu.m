@@ -1,4 +1,4 @@
-function [dM,indv,inds,trtm,tfm] = processShotRecords(VMOD,SHOT,ixs,ixwin,nxwin,ntr,nz,nx,nr,nt,dsx,dx,dt,ss)
+function [dM,indv,inds,trtm,tfm] = processShotRecords_gpu(VMOD,SHOT,ixs,ixwin,nxwin,ntr,nz,nx,nr,nt,dsx,dx,dt,ss)
 %PROCESSSHOTRECORDS creates an image using reverse-time migration
 %
 % Inputs
@@ -28,7 +28,8 @@ if isempty(v)
 end
 if isempty(shot)
     if ischar(SHOT)
-        shot = SegYFileReader(SHOT,true,false);
+       % shot = SegYFileReader(SHOT,true,false);
+        shot = ReadSegyFast(SHOT);
     else
         shot = SHOT;
     end
