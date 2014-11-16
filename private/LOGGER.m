@@ -41,6 +41,8 @@ else
         error('Must first call %s(''init'')',mfilename)
     end
     fprintf(fid,str,varargin{:});
+    % print to console
+    fprintf(str,varargin{:});
     if length(varargin)==1
         str = [str '\n'];
         fprintf(str,varargin{:});
