@@ -75,16 +75,16 @@ int main(int argc, char *argv[]) {
     COPY_TO_LOCAL(&dt, sizeof(double));
     COPY_TO_LOCAL(&dx, sizeof(double));
 
-    double *v = (double *)(mkl_malloc(nx * nz * sizeof(double)),64);
+    double *v = (double *)mkl_malloc(nx * nz * sizeof(double),64);
     COPY_TO_LOCAL(v, sizeof(double) * nx * nz);
 
-    double *data = (double *)(mkl_malloc(nx * nt * sizeof(double)),64);
+    double *data = (double *)mkl_malloc(nx * nt * sizeof(double),64);
     COPY_TO_LOCAL(data, sizeof(double) * nx * nt);
 
     double *boundary = (double *)mkl_malloc(20 * sizeof(double),64);
     COPY_TO_LOCAL(boundary, 20 * sizeof(double));
 
-    double *M = (double *)(mkl_malloc(nx * nz * sizeof(double)),64);
+    double *M = (double *)mkl_malloc(nx * nz * sizeof(double),64);
 
 
 

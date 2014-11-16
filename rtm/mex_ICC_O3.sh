@@ -12,7 +12,7 @@ option="$option -pthread"
 
 ldoption="-fopenmp"
 
-#icc -O3 rtm2d_fm2d_mex.core.cpp -o rtm2d_fm2d_mex.core -openmp -simd -xAVX -vec-report || exit 1
-g++ -fopenmp -O3 rtm2d_fm2d_mex.core.cpp -o rtm2d_fm2d_mex.core || exit 1
+icc -O3 -mkl rtm2d_fm2d_mex.core.cpp -o rtm2d_fm2d_mex.core -openmp -simd -xAVX -vec-report || exit 1
+#g++ -fopenmp -O3 rtm2d_fm2d_mex.core.cpp -o rtm2d_fm2d_mex.core || exit 1
 
 mex CXX="g++" CXXFLAGS="-O2 $option" LDFLAGS="$ldoption" rtm2d_fm2d_mex.cpp
