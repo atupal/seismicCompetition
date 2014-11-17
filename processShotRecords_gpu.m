@@ -60,8 +60,8 @@ stic = tic;
 if indv(1) <= 20
     V = [repmat(v(:,1),1,20), v(:,indv(1):(indv(end)+20))];
 elseif indv(end) >= nx-20
-    % V = [v(:,(indv(1)-20):indv(end)), repmat(v(:,end),1,20)];
-    V = [v(:,(indv(1)-20):indv(end)), repmat(v(:,1),1,20)];
+    V = [v(:,(indv(1)-20):indv(end)), repmat(v(:,end),1,20)];
+    % V = [v(:,(indv(1)-20):indv(end)), repmat(v(:,1),1,20)];
 else
     V = v(:,(indv(1)-20):(indv(end)+20));
 end
