@@ -50,7 +50,7 @@ inds(inds>ntr) = [];
 indv = (1:nxwin(ixs))+dsx*(ixs-1);
 indv(indv>nx) = [];
 
-fprintf('A\n')
+% fprintf('A\n')
 stic = tic;
 
 %% Add boundary for simulation
@@ -59,8 +59,8 @@ stic = tic;
 if indv(1) <= 20
     V = [repmat(v(:,1),1,20), v(:,indv(1):(indv(end)+20))];
 elseif indv(end) >= nx-20
-    % V = [v(:,(indv(1)-20):indv(end)), repmat(v(:,end),1,20)];
-    V = [v(:,(indv(1)-20):indv(end)), repmat(v(:,1),1,20)];
+    V = [v(:,(indv(1)-20):indv(end)), repmat(v(:,end),1,20)];
+    % V = [v(:,(indv(1)-20):indv(end)), repmat(v(:,1),1,20)];
 else
     V = v(:,(indv(1)-20):(indv(end)+20));
 end
@@ -71,9 +71,9 @@ currentShot = [repmat(shot(:,inds(1)),1,20), shot(:,inds),...
     repmat(shot(:,inds(end)),1,20)]' * ss;
 
 
-fprintf('B\n')
-fprintf(hms(toc(stic)));
-fprintf('\n');
+% fprintf('B\n')
+% fprintf(hms(toc(stic)));
+% fprintf('\n');
 stic = tic;
 
 %%%%%%% Process shots in reverse time
@@ -128,12 +128,12 @@ stic = tic;
 sw = repmat(0:nr-1,nz,1) + ixs;
 sw(sw>nr)=nr;
 
-[nz,nx] = size(V);
-[~,nt] = size(currentShot);
+% [nz,nx] = size(V);
+% [~,nt] = size(currentShot);
 M = rtm2d_fm2d_mex(V,currentShot,dx,dt);
-fprintf('C\n')
-fprintf(hms(toc(stic)));
-fprintf('\n');
+% fprintf('C\n')
+% fprintf(hms(toc(stic)));
+% fprintf('\n');
 % M = rtm2d_fm2d_mex(v,shot,dx,dt, indv, inds, nz, nx, nt, ss, V, currentShot);
 
 dM = diff(M(1:end-18,21:end-20),2,1);
