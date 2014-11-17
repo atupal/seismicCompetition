@@ -28,7 +28,8 @@ if isempty(v)
 end
 if isempty(shot)
     if ischar(SHOT)
-        shot = SegYFileReader(SHOT,true,false);
+       % shot = SegYFileReader(SHOT,true,false);
+        shot =ReadSegyFast (SHOT);
     else
         shot = SHOT;
     end
