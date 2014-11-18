@@ -200,7 +200,8 @@ for runCase = 1:length(runMode)
                         % Store results in final image
                         Stacked(:,indv(1):indv(end)) = dM + Stacked(:,indv(1):indv(end));
                         % Show current plot
-                        plotSeismicProgress(units,x,z,velocityModel,t,shot(:,inds)'*ss,dM,Stacked,IXS,[indv(1),indv(end)],tparallel,ixs)
+                        shot(:, inds)' * ss;
+                        % plotSeismicProgress(units,x,z,velocityModel,t,shot(:,inds)'*ss,dM,Stacked,IXS,[indv(1),indv(end)],tparallel,ixs)
                     end
                     LOGGER('Total processing time through iter %04d: %s\n',ixs,hms(tparallel))
                 end

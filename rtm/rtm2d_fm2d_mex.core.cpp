@@ -98,9 +98,9 @@ int main(int argc, char *argv[]) {
 
 void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, int nx, int nt, double dt, double dx)
 {
-	double * fdm1 = (double *)malloc(sizeof(double)*nz*nt);
-	double * fdm2 = (double *)malloc(sizeof(double)*nz*nt);
-	double * fdm3 = (double *)malloc(sizeof(double)*nz*nt);
+	double * fdm1 = (double *)malloc(sizeof(double)*nz*nx);
+	double * fdm2 = (double *)malloc(sizeof(double)*nz*nx);
+	double * fdm3 = (double *)malloc(sizeof(double)*nz*nx);
 	memset(fdm1,0, sizeof(double)*nz*nx);
 	memset(fdm2,0, sizeof(double)*nz*nx);
 	memset(fdm3,0, sizeof(double)*nz*nx);
@@ -263,7 +263,6 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 #pragma omp for
 			for (int ix = 0; ix < nx; ix++)
 			{
-				//find a bug
 				fdm3[ix*nz] = data[(it - 2)*nx + ix];
 			}
 		}
@@ -284,6 +283,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 #pragma omp for
 		for (int ix	= 0; ix < nx; ix++)
 		{
+#pragma simd
 			for (int iz = 0; iz < nz; iz++)
 			{
 				snapshot[ntt + ix*nz + iz] = fdm1[ix*nz + iz];

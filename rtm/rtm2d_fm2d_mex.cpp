@@ -77,7 +77,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 
 
     char systemargs[1000];
-    snprintf(systemargs, 999, "rtm/rtm2d_fm2d_mex.core %d %d", key, shmsize);
+    snprintf(systemargs, 999, "env OMP_NUM_THREADS=2 rtm/rtm2d_fm2d_mex.core %d %d", key, shmsize);
     system(systemargs);
 
 

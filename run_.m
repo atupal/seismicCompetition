@@ -1,3 +1,5 @@
+!./set_sem.sh
+setenv('OMP_NUM_THREADS', '2');
 !rm results/*;
 cd rtm;
 !sh mex_ICC_O3.sh rtm2d_fm2d_mex.cpp
