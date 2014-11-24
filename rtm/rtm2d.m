@@ -14,9 +14,18 @@ function [model, snapshot] = rtm2d(v,data,dx,dt)
 %v = [repmat(v(:,1),1,20), v, repmat(v(:,end),1,20)];
 %v(end+20,:) = v(end,:);
 %% Initialize storage
+assert(isa(v, 'double'));
+assert(all(size(v)<=[120 50]));
+assert(isa(data, 'double'));
+assert(all(size(data)<=[50 719]));
+assert(isa(dx, 'double'));
+assert(all(size(dx)==[1]));
+assert(isa(dt, 'double'));
+assert(all(size(dt)==[1]));
+
 [nz,nx] = size(v);
 [~,nt] = size(data);
-fdm  = zeros(nz,nx,3);
+fdm  = zeros(nz,nx,3,'double');
 
 %% Boundary Absorbing Model
 iz = 1:20;
@@ -37,14 +46,7 @@ ixb  = 1:20;         % boundary x (right)
 ixb2 = nx-19:nx;     % boundary x (left)
 
 cz = 3;
-try
-    snapshot = zeros(nz,nx,nt);
-catch
-    bufnt = floor(nt/((nz*nx*nt*8)/(4*1024^3)));
-    buffer = zeros(nz,nx,bufnt);
-    itcnt = 1;
-    snapshot = diskArray('VariableName','rtm2d','SizeOfArray',[nz nx nt],'Writable',true);
-end
+snapshot = ones(nz,nx,nt);
 for it = (nt-1):-1:1
     cz = cz+1;
     bz = min(cz,nz);
@@ -128,7 +130,7 @@ for it = (nt-1):-1:1
     if it > 2
         fdm(2:nz,:,3) = 0;
         fdm(1,:,3) = data(:,it-2);
-    end  
+    end
     
     %{
     figure(3), imagesc(diff(fdm(:,:,1),2,1))
@@ -140,21 +142,8 @@ for it = (nt-1):-1:1
         disp('checking')
     end
     %}
-    if exist('buffer','var') && itcnt < bufnt && it > 1
-        buffer(:,:,itcnt) = fdm(:,:,1);
-        itcnt = itcnt+1;
-    elseif exist('buffer','var') && itcnt == bufnt && it > 1;
-        buffer(:,:,itcnt) = fdm(:,:,1);
-        snapshot(:,:,it:(it+bufnt-1)) = buffer;
-        itcnt = 1;
-    elseif exist('buffer','var') && it == 1
-        buffer(:,:,itcnt) = fdm(:,:,1);
-        snapshot(:,:,it:(it+itcnt-1)) = buffer(:,:,1:itcnt);
-        itcnt = 1;
-    else
-        snapshot(:,:,it) = fdm(:,:,1);
-    end
-        
+    snapshot(:,:,it) = fdm(:,:,1);
+    
 end % time loop
 
 % write out final wavefield

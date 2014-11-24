@@ -25,28 +25,28 @@ classdef SeismicFileReader < handle
 %      readTraceData        - read in numeric trace data
 %
 %   See also SEG2FILEREADER, SEGYFILEREADER
-   
-    properties (SetAccess = protected) 
+
+    properties (SetAccess = protected)
 %FILENAME Name of the binary file.
 %   The FILENAME property records the file name and is used for opening the
 %   file for reading.
 
         FileName = '';
-        
+
 %FILEPATH Path of the binary file.
 %   The FILEPATH property contians the file location as a string.
 
         FilePath = '';
-        
+
 %FILESIZE size in bytes of file.
 %   The FILESIZE property contians the file size in bytes.
 
         FileSize = '';
-     
+
 %FILEFORMAT File format information.
 %   Te FILEFORMAT property is used to provide a descriptions of the file
 %   format (e.g. seg2 version 0)
-        
+
         FileFormat = '';
 
 %FILEHEADER File descriptive information.
@@ -54,13 +54,13 @@ classdef SeismicFileReader < handle
 %   header.
 
         FileHeader = {};
-        
+
 %MACHINEFORMAT Format of the binary file.
 %   The MACHINEFORMAT property contains information about the binary file
 %   type, big-endian or little-endian.
 
         MachineFormat = 'native';
-        
+
 %NUMBEROFTRACES Number of traces in the file.
 %   The NUMBEROFTRACES property reports number of traces in the file, an
 %   integer value.
@@ -72,14 +72,14 @@ classdef SeismicFileReader < handle
 %   inf the file.
 
         TraceDescription = {};
-        
+
     end % public properties
-    
+
     % Property data is private to the class
     properties (SetAccess = private, GetAccess = private)
         FileID;                   % file id for reading
     end % private properties
-          
+
     % Public Class Methods
     methods
         function obj = SeismicFileReader(varargin)
@@ -101,8 +101,8 @@ classdef SeismicFileReader < handle
             end
             openFile(obj,fileName)
         end % constructor
-        
-        function h = readFileHeader(obj,fmt,varargin) 
+
+        function h = readFileHeader(obj,fmt,varargin)
 %READFILEHEADER reads the header fields.
 %   H = READFILEHEADER(OBJ,FMT,OFFSET) reads in the file header
 %   information for OBJ (the SEISMICFILEREADER object) according to the
@@ -135,11 +135,11 @@ classdef SeismicFileReader < handle
 %   fileHeader = readFileHeader(s,fmt)
 %
 %   See also SEISMICFILEREADER, READTRACEHEADER, READTRACEDATA
-            
+
             h = readHeader(obj,fmt,varargin{:});
-            
+
         end % readFileHeader
-        
+
         function h = readTraceHeader(obj,fmt,varargin)
 %READTRACEHEADER reads the header fields.
 %   H = READTRACEHEADER(OBJ,FMT,OFFSET) reads in the file header
@@ -171,13 +171,13 @@ classdef SeismicFileReader < handle
 %   fmt = {'uint16',{'TraceDescriptor','TraceBlockSize'};...
 %          'uint32',{'TraceDataSize','NumberOfSamples'};...
 %          'uint8', {'TraceDataFormatCode'} };
-%   offset = locInFile.TracePointers(1);      
+%   offset = locInFile.TracePointers(1);
 %   traceHeader = readTraceHeader(s,fmt,offset)
 %
 %   See also SEISMICFILEREADER, READFILEHEADER, READTRACEDATA
             h = readHeader(obj,fmt,varargin{:});
         end % read Trace Header
-        
+
         function d = readTraceData(obj,fmt,varargin)
 %READTRACEDATA reads the trace numeric data
 %   H = READTRACEDATA(OBJ,TRACES,OFFSET) reads in the file header
@@ -205,11 +205,11 @@ classdef SeismicFileReader < handle
 %   fmt = {'uint16',{'TraceDescriptor','TraceBlockSize'};...
 %          'uint32',{'TraceDataSize','NumberOfSamples'};...
 %          'uint8', {'TraceDataFormatCode'} };
-%   offset = locInFile.TracePointers(1);      
+%   offset = locInFile.TracePointers(1);
 %   traceHeader = readTraceHeader(s,fmt,offset)
 %
 %   % read in the data for trace 1
-%   fmt = {'int32', traceHeader.NumberOfSamples}; % 32-bit integer 
+%   fmt = {'int32', traceHeader.NumberOfSamples}; % 32-bit integer
 %   offset = 1348; % trace 1 starts at byte 1348
 %   traceData = readTraceData(s,fmt,offset)
 %
@@ -241,7 +241,7 @@ classdef SeismicFileReader < handle
             st = fclose(obj.FileID);
             obj.FileID = [];
         end
-        
+
         function delete(obj)
 %DELETE delete a SeismicFileReader object.
 %   DELETE(OBJ) deletes the object OBJ, and closes any open files.
@@ -251,12 +251,12 @@ classdef SeismicFileReader < handle
                 fclose(obj.FileID);
             end
         end % delete
-        
+
     end % methods
-    
+
     % Private Methods
     methods (Access = private)
-        
+
         function openFile(obj,fileName)
         %OPENFILE open the file for reading
         %   OPENFILE(OBJ,FILENAME) opens the file in FILENAME and returns
@@ -265,23 +265,23 @@ classdef SeismicFileReader < handle
             if nargin == 1
                 fileName = fullfile(obj.FilePath,obj.FileName);
             end
-            
+
             % If filename is provided, open it for reading if exists
             if ~isempty(fileName)
                 assert(exist(fileName,'file') == 2, ...
                     'SeismicFileReader:FileNotFound',...
                     'Could not locate file: %s', fileName)
-                
+
                 obj.FileID = fopen(fileName,'r');
-                
+
                 assert(obj.FileID > 0, ...
                     'SeismicFileReader:CouldNotOpenFile',...
                     'Could not open file: %s', fileName);
             end
-            
+
             % Set object properties from file, use which to capture path if
             % file is on the path
-            
+
             ff = which(fileName);
             if isempty(ff)
                 ff = fileName;
@@ -291,12 +291,12 @@ classdef SeismicFileReader < handle
                s = dir(ff);
                obj.FileSize = s.bytes;
         end % openFile
-        
+
         function st = isOpen(obj)
         %ISOPEN returns true or false if the file is open.
         %   ISOPEN(OBJ) returns TRUE if the file in OBJ.FILENAME is open,
         %   otherwise it returns FALSE.
-        
+
             % Check if the file ID is valid
             try
                 ferror(obj.FileID);
@@ -308,9 +308,9 @@ classdef SeismicFileReader < handle
                 else
                     throw(e)
                 end
-            end 
+            end
         end % isOpen
-        
+
         function f = readFile(obj,sizeA,precision)
 %READFILE reads format similar to fread
 %   F = READFILE(OBJ,SIZEA,PRECISION) reads in data from the file linked to
@@ -324,13 +324,13 @@ classdef SeismicFileReader < handle
             skip = 0;
             f = fread(obj.FileID,sizeA,precision,skip,obj.MachineFormat);
         end
-        
+
         function h = readHeader(obj,fmt,varargin)
             if ~isOpen(obj)
                 % open file if not already
                 openFile(obj)
             end
-            
+
             if nargin > 2
                 offset = varargin{1};
                 if offset >= 0
@@ -353,9 +353,9 @@ classdef SeismicFileReader < handle
                     end % j loop
                 end % if
             end % i loop
-            
+
         end % readHeader
-        
+
     end % private methods
-    
+
 end % class SeismicFileReader

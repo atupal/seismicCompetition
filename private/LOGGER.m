@@ -10,7 +10,7 @@ if strcmp(str,'init')
     rootd = varargin{1};
     test = varargin{2};
     file = strrep(fullfile(rootd,[test '_' datestr(now) '.txt']),' ','_');
-    %file = strrep(file(3:end),':','-');
+    file = [file(1:2) strrep(file(3:end),':','-')];
     if isempty(fid)
         fid = fopen(file,'wt');
         if fid<0
@@ -28,14 +28,33 @@ elseif strcmp(str,'close')
     fid = [];
 elseif strcmp(str,'error')
     err = varargin{1};
-    fprintf(fid,'\n*** %s ***\n',err.cause{1}.identifier);
-    fprintf(fid,'\t\t%s\n\n',err.cause{1}.message);
-    fprintf('\n*** %s ***\n',err.cause{1}.identifier);
-    fprintf('\t\t%s\n\n',err.cause{1}.message);
+
+    displayException(fid,err)
+
+    if isempty(err.cause)==false
+        for cidx = 1:length(err.cause{:})
+            displayException(fid,err.cause{cidx})
+        end
+    end
 else
+    if isempty(fid)
+        error('Must first call %s(''init'')',mfilename)
+    end
     fprintf(fid,str,varargin{:});
+    % print to console
+    fprintf(str,varargin{:});
     if length(varargin)==1
         str = [str '\n'];
         fprintf(str,varargin{:});
     end
+end
+
+function displayException(fid,err)
+
+fprintf('\n*** %s:%s ***\n',err.identifier,err.message);
+fprintf(fid,'\n*** %s:%s ***\n',err.identifier,err.message);
+
+for sidx = 1:length(err.stack)
+    fprintf('\t\t%s:%d\n',err.stack(sidx).file,err.stack(sidx).line);
+    fprintf(fid,'\t\t%s:%d\n',err.stack(sidx).file,err.stack(sidx).line);
 end

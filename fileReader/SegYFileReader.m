@@ -16,12 +16,12 @@ classdef SegYFileReader < SeismicFileReader
 %       TraceDescription    - Trace information from the seismic file
 %
 %   See also SEISMICFILEREADER, SEG2FILEREADER
-    
+
     properties (SetAccess = protected)
         TapeLabel = '';
 
     end % public properties
-    
+
     methods
         function obj = SegYFileReader(fileName,procHeader,procTraceHeader,endian)
         % Constructor for Seg2FileReader
@@ -30,49 +30,49 @@ classdef SegYFileReader < SeismicFileReader
                 fileName = '';
                 procHeader = false;
             end
-            
+
             if ~exist('procHeader','var')
                 % read in the header
                 procHeader = true;
             end
-            
+
             if ~exist('procTraceHeader','var')
                 % read in the header
                 procTraceHeader = true;
             end
-            
+
             if ~exist('endian','var')
                 endian = 'ieee-be'; % SEGY Rev 1.0 should be big endian
             end
-            
+
             obj = obj@SeismicFileReader(fileName);
-            obj.MachineFormat = endian;            
-            
+            obj.MachineFormat = endian;
+
             if procHeader
                 readFileHeader(obj);
             end
-            
+
             if procHeader && procTraceHeader
                 readTraceHeader(obj);
             end
         end
-        
+
         function fh = readFileHeader(obj)
-%READFILEHEADER reads SEG Y header information
-%   H = READFILEHEADER(OBJ) reads in the optional tapel lablel header, the
-%   3200 bytes textual header, the 400 byte binary header, and option 3200
-%   byte textual headers.
-%
-%   Example: TODO
-%
-%   See also SEGYFILEREADER, READTAPEHEADER, READTAPEDATA
+        %READFILEHEADER reads SEG Y header information
+        %   H = READFILEHEADER(OBJ) reads in the optional tapel lablel header, the
+        %   3200 bytes textual header, the 400 byte binary header, and option 3200
+        %   byte textual headers.
+        %
+        %   Example: TODO
+        %
+        %   See also SEGYFILEREADER, READTAPEHEADER, READTAPEDATA
 
             % read in the optional header if present
             % Is there a optional file header?
             fmt = {'uchar',{128,'TapeLabel'}};
             fh = readFileHeader@SeismicFileReader(obj,fmt);
             tapeHeader = char(fh.TapeLabel');
-            
+
             % if SYX.X is present, this file contains an optional header
             if strcmpi('SY',tapeHeader(5:6))
                 obj.TapeLabel.StorageUnitSeqNumber = tapeHeader(1:4);
@@ -88,19 +88,19 @@ classdef SegYFileReader < SeismicFileReader
             else
                 obj.TapeLabel = 'None';
             end
-            
+
             % if present, set the offset to account for it
             if isstruct(obj.TapeLabel)
                 offset = 128;
             else
                 offset = 0;
             end
-            
+
             % read in the 3200 byte required header
             fmt = {'uchar',{3200,'TextHeader'}};
             fh = readFileHeader@SeismicFileReader(obj,fmt,offset);
             obj.FileHeader.TextualHeader = char(fh.TextHeader');
-            
+
             % read in the 400 Byte binary header
             offset = offset + 3200;
             fmt = {'int32',{'JobID','LineNumber','ReelNumber'};
@@ -118,100 +118,109 @@ classdef SegYFileReader < SeismicFileReader
                             'CorrelatedTraces','BinaryGain',...
                             'AmplitudeRecovery','MeasurementSystem',...
                             'ImpulsePolarity','VibratoryPolarity'};
-                    'int16',{120,'Unassigned1'};
-                    'int16',{'RevisionNumber','FixedLengthTraceFlag',...
-                             'NumberOfExtendedTextualHeaders'};
-                    'int16',{94,'Unassigned2'}
-                    };
-                
-             fh = readFileHeader@SeismicFileReader(obj,fmt,offset);
-             obj.FileHeader.BinaryHeader = fh;
-             
-             % Verify SEG Y supported revision
-             v = obj.FileHeader.BinaryHeader.RevisionNumber;
-             if v > 257
-                 error('SegYFileReader:UnsupportedVersion',...
-                     'Version number found in file is %2.2f. Supported versions are up to 1.0',...
-                     num2str(v/10));
-             else
-                 obj.FileFormat = ['SEG Y Version ',num2str(v/10)];
-             end
-             
-             % Set number of traces
-             obj.NumberOfTraces = obj.FileHeader.BinaryHeader.DataTracePerEnsemble;
-                             
-             offset = offset+400;
-             
-             % Read Extended 3200 byte textual headers if present
-             for i = 1:obj.FileHeader.BinaryHeader.NumberOfExtendedTextualHeaders;
-                 fmt = {'uchar',{3200,'TextHeader'}};
-                 fh = readFileHeader@SeismicFileReader(obj,fmt,offset);
-                 obj.FileHeader.ExtendedTextualHeader(i) = char(fh.TextHeader');
-                 offset =offset+3200;
-             end
-             
-             
-             % Validate input selections
-             switch obj.FileHeader.BinaryHeader.SampleFormatCode
-                 case 1 % 4-byte IBM floating-point
-                     obj.FileHeader.TraceFormat = 'uint';
-                     mult = 4;
-                 case 2 % 4-byte two's complement integer
-                     obj.FileHeader.TraceFormat = 'int32';
-                     mult = 4;
-                 case 3 % 2-byte two's complement integer
-                     obj.FileHeader.TraceFormat = 'int16';
-                     mult = 2;
-                 case 4 % 4-byte fixed point with gain (obsolete)
-                     obj.FileHeader.TraceFormat = 'int32';
-                     mult = 4;
-                 case 5 % 4-byte IEEE floating-point
-                     obj.FileHeader.TraceFormat = 'float32';
-                     mult = 4;
-                 case 8 % 1-byte two's complement integer
-                     obj.FileHeader.TraceFormat = 'int8';
-                     mult = 1;
-                 otherwise
-                     warning('Couldn''t determine data format, assuming float 32');
-                     obj.FileHeader.TraceFormat = 'float32';
-                     mult = 4;
-             end
-             
-             % Store trace offset pointers
-             fmt = {'int16',{1,'NumberOfSamples'}};
-             fh = readFileHeader@SeismicFileReader(obj,fmt,offset+114);
-             traceSize = fh.NumberOfSamples*mult + 240;
-             mxTraces = ceil((obj.FileSize - offset)/traceSize);
-             obj.FileHeader.TracePointers = zeros(mxTraces,1);
-             obj.FileHeader.TracePointers(1) = offset;
-             % check to see if all traces are of equal size
-             if obj.FileHeader.BinaryHeader.FixedLengthTraceFlag == 1
-                 % all are the same size so build pointers
-                 i = 1:(mxTraces+1);
-                 obj.FileHeader.TracePointers = [(i-1)*traceSize + offset]';
-                 obj.NumberOfTraces = mxTraces;
-             else % traces could be different sizes
+                   'int16',{120,'Unassigned1'};
+                   'int16',{'RevisionNumber','FixedLengthTraceFlag',...
+                            'NumberOfExtendedTextualHeaders'};
+                   'int16',{94,'Unassigned2'}
+                  };
+
+            fh = readFileHeader@SeismicFileReader(obj,fmt,offset);
+            obj.FileHeader.BinaryHeader = fh;
+
+            % Verify SEG Y supported revision
+            v = obj.FileHeader.BinaryHeader.RevisionNumber;
+            if v > 257
+                error('SegYFileReader:UnsupportedVersion',...
+                      'Version number found in file is %2.2f. Supported versions are up to 1.0',...
+                      num2str(v/10));
+            else
+                obj.FileFormat = ['SEG Y Version ',num2str(v/10)];
+            end
+
+            % Set number of traces
+            obj.NumberOfTraces = obj.FileHeader.BinaryHeader.DataTracePerEnsemble;
+
+            offset = offset+400;
+
+            % Read Extended 3200 byte textual headers if present
+            for i = 1:obj.FileHeader.BinaryHeader.NumberOfExtendedTextualHeaders;
+                fmt = {'uchar',{3200,'TextHeader'}};
+                fh = readFileHeader@SeismicFileReader(obj,fmt,offset);
+                obj.FileHeader.ExtendedTextualHeader(i) = char(fh.TextHeader');
+                offset =offset+3200;
+            end
+
+
+            % Validate input selections
+            switch obj.FileHeader.BinaryHeader.SampleFormatCode
+                case 1 % 4-byte IBM floating-point
+                    obj.FileHeader.TraceFormat = 'uint';
+                    mult = 4;
+                case 2 % 4-byte two's complement integer
+                    obj.FileHeader.TraceFormat = 'int32';
+                    mult = 4;
+                case 3 % 2-byte two's complement integer
+                    obj.FileHeader.TraceFormat = 'int16';
+                    mult = 2;
+                case 4 % 4-byte fixed point with gain (obsolete)
+                    obj.FileHeader.TraceFormat = 'int32';
+                    mult = 4;
+                case 5 % 4-byte IEEE floating-point
+                    obj.FileHeader.TraceFormat = 'float32';
+                    mult = 4;
+                case 8 % 1-byte two's complement integer
+                    obj.FileHeader.TraceFormat = 'int8';
+                    mult = 1;
+                otherwise
+                    warning('Couldn''t determine data format, assuming float 32');
+                    obj.FileHeader.TraceFormat = 'float32';
+                    mult = 4;
+            end
+
+            % Store trace offset pointers
+            fmt = {'int16',{1,'NumberOfSamples'}};
+            fh = readFileHeader@SeismicFileReader(obj,fmt,offset+114);
+            if fh.NumberOfSamples <= 0
+                % try and get it from the binary header
+                fh.NumberOfSamples = obj.FileHeader.BinaryHeader.NumberOfSamples;
+            end
+            traceSize = fh.NumberOfSamples*mult + 240;
+            mxTraces = ceil((obj.FileSize - offset)/traceSize);
+            obj.FileHeader.TracePointers = zeros(mxTraces,1);
+            obj.FileHeader.TracePointers(1) = offset;
+            % check to see if all traces are of equal size
+            if obj.FileHeader.BinaryHeader.FixedLengthTraceFlag == 1
+                % all are the same size so build pointers
+                i = 1:(mxTraces+1);
+                obj.FileHeader.TracePointers = [(i-1)*traceSize + offset]';
+                obj.NumberOfTraces = mxTraces;
+            else % traces could be different sizes
                 i = 1;
-                 while (offset<obj.FileSize) %for i = 2:obj.NumberOfTraces;
-                     % read the trace headers to get the size of the traces
-                     % number of samples is 114 bytes into the trace header
-                     i = i+1;
-                     fh = readFileHeader@SeismicFileReader(obj,fmt,offset+114);
-                     ptr = fh.NumberOfSamples*mult + 240 +...
-                            obj.FileHeader.TracePointers(i-1);
-                     if ptr < obj.FileSize
-                         obj.FileHeader.TracePointers(i) = ptr;
-                     end
+                while (offset<obj.FileSize) %for i = 2:obj.NumberOfTraces;
+                                            % read the trace headers to get the size of the traces
+                                            % number of samples is 114 bytes into the trace header
+                    i = i+1;
+                    fh = readFileHeader@SeismicFileReader(obj,fmt,offset+114);
+                    if fh.NumberOfSamples <= 0
+                        % try and get it from the binary header
+                        fh.NumberOfSamples = obj.FileHeader.BinaryHeader.NumberOfSamples;
+                    end
+                    ptr = fh.NumberOfSamples*mult + 240 +...
+                          obj.FileHeader.TracePointers(i-1);
+
+                    if ptr < obj.FileSize
+                        obj.FileHeader.TracePointers(i) = ptr;
+                    end
                     offset = ptr;
-                 end
-                 obj.NumberOfTraces = length(obj.FileHeader.TracePointers);
-                 if i < mxTraces
+                end
+                obj.NumberOfTraces = length(obj.FileHeader.TracePointers);
+                if i < mxTraces
                     obj.FileHeader.TracePointers(i+1:end) = [];
-                 end
-             end
+                end
+            end
 
         end %readFileHeader
-        
+
         function th = readTraceHeader(obj,traceNumber)
             if nargin < 2
                 traceNumber = 1:obj.NumberOfTraces;
@@ -230,75 +239,79 @@ classdef SegYFileReader < SeismicFileReader
                             'ReceiverDatumElevation',...
                             'SourceDatumElevation',...
                             'SourceWaterDepth','GroupWaterDepth'};
-                    'int16',{'ElevationOrDepthScalar','CoordinateScalar'};
-                    'int32',{'SourceX','SourceY','GroupX','GroupY'};
-                    'int16',{'CoordinateUnits','WeatheringVelocity',...
-                             'SubweatheringVelocity',...
-                             'SourceUpholeTime_ms','GroupUpholeTime_ms',...
-                             'SourceStaticCorrection_ms',...
-                             'GroupStaticCorrection_ms',...
-                             'TotalStaticApplied_ms',...
-                             'ALagTime_ms','BLagTime_ms',...
-                             'RecordingDelay_ms',...
-                             'MuteTimeStart_ms','MuteTimeEnd_ms',...
-                             'NumberOfSamples',...
-                             'SampleInterval_ms',...
-                             'GainType','GainConstant_dB',...
-                             'InitialGain_dB','Correlated',...
-                             'SweepFrequencyStart_Hz',...
-                             'SweepFrequencyEnd_Hz',...
-                             'SweepLength_ms','SweepType',...
-                             'SweepTaperLengthStart_ms',...
-                             'SweepTaperLengthEnd_ms',...
-                             'TaperType','AliasFilter_Hz',...
-                             'AliasSlope_dBperOctave',...
-                             'NotchFilterFrequency_Hz',...
-                             'NotchFilterSlope_dBperOctave',...
-                             'LowCutFrequency_Hz',...
-                             'HighCutFrequency_Hz',...
-                             'LowCutSlope_dBperOctave',...
-                             'HighCutSlope_dBperOctave',...
-                             'Year','Day','Hour','Minute','Second',...
-                             'TimeBasisCode','WeightingFactor',...
-                             'GeophoneGroupNumberRoll1',...
-                             'GeophoneGroupNumberFirstTraceOriginalRecord',...
-                             'GeophoneGroupNumberLastTraceOriginalRecord',...
-                             'GapSize','OverTravel'};
-                    'int32',{'EnsembleX','EnsembleY','InLineNumber3D',...
-                             'CrossLineNumber3D','ShotPointNumber'};
-                    'int16',{'ShotPointScalar','TraceMeasurementUnit'};
-                    'int32',{1,'TransductionConstantMantissa'};
-                    'int16',{'TransductionConstantExponent',...
-                             'TranductionUnits','TraceIdentifier',...
-                             'TimeScalar','SourceTypeOrientation'};
-                    'bit48',{1,'SourceEnergyDirection'};
-                    'int32',{1,'SourceMeasurementMantissa'};
-                    'int16',{'SourceMeasurementExponent',...
-                             'SourceMeasurementUnit'};
-                    'int16',{4,'Unassigned'}
-                    };
-                       
+                   'int16',{'ElevationOrDepthScalar','CoordinateScalar'};
+                   'int32',{'SourceX','SourceY','GroupX','GroupY'};
+                   'int16',{'CoordinateUnits','WeatheringVelocity',...
+                            'SubweatheringVelocity',...
+                            'SourceUpholeTime_ms','GroupUpholeTime_ms',...
+                            'SourceStaticCorrection_ms',...
+                            'GroupStaticCorrection_ms',...
+                            'TotalStaticApplied_ms',...
+                            'ALagTime_ms','BLagTime_ms',...
+                            'RecordingDelay_ms',...
+                            'MuteTimeStart_ms','MuteTimeEnd_ms',...
+                            'NumberOfSamples',...
+                            'SampleInterval_ms',...
+                            'GainType','GainConstant_dB',...
+                            'InitialGain_dB','Correlated',...
+                            'SweepFrequencyStart_Hz',...
+                            'SweepFrequencyEnd_Hz',...
+                            'SweepLength_ms','SweepType',...
+                            'SweepTaperLengthStart_ms',...
+                            'SweepTaperLengthEnd_ms',...
+                            'TaperType','AliasFilter_Hz',...
+                            'AliasSlope_dBperOctave',...
+                            'NotchFilterFrequency_Hz',...
+                            'NotchFilterSlope_dBperOctave',...
+                            'LowCutFrequency_Hz',...
+                            'HighCutFrequency_Hz',...
+                            'LowCutSlope_dBperOctave',...
+                            'HighCutSlope_dBperOctave',...
+                            'Year','Day','Hour','Minute','Second',...
+                            'TimeBasisCode','WeightingFactor',...
+                            'GeophoneGroupNumberRoll1',...
+                            'GeophoneGroupNumberFirstTraceOriginalRecord',...
+                            'GeophoneGroupNumberLastTraceOriginalRecord',...
+                            'GapSize','OverTravel'};
+                   'int32',{'EnsembleX','EnsembleY','InLineNumber3D',...
+                            'CrossLineNumber3D','ShotPointNumber'};
+                   'int16',{'ShotPointScalar','TraceMeasurementUnit'};
+                   'int32',{1,'TransductionConstantMantissa'};
+                   'int16',{'TransductionConstantExponent',...
+                            'TranductionUnits','TraceIdentifier',...
+                            'TimeScalar','SourceTypeOrientation'};
+                   'bit48',{1,'SourceEnergyDirection'};
+                   'int32',{1,'SourceMeasurementMantissa'};
+                   'int16',{'SourceMeasurementExponent',...
+                            'SourceMeasurementUnit'};
+                   'int16',{4,'Unassigned'}
+                  };
+
             for t = 1:length(traceNumber)
-                offset = obj.FileHeader.TracePointers(traceNumber(t));      
+                offset = obj.FileHeader.TracePointers(traceNumber(t));
                 f = readTraceHeader@SeismicFileReader(obj,fmt,offset);
                 th(t) = f;
+                if th(t).NumberOfSamples <= 0
+                    % get trace samples from binary header
+                    th(t).NumberOfSamples = obj.FileHeader.BinaryHeader.NumberOfSamples;
+                end
             end
-            
+
             if nargout == 0 % add to object if no output requested
                 obj.TraceDescription = th;
             end
         end % readTraceHeader
-        
+
         function [td,th] = readTraceData(obj,traceNumber,td)
             if nargin == 1 || isempty(traceNumber)
                 traceNumber = 1:obj.NumberOfTraces;
             end
-            
+
             % get 1st trace size to determine initial array size
             th = readTraceHeader(obj,1);
             r = th.NumberOfSamples;
             c = length(traceNumber);
-            
+
             % create as distributed array if requested
             if nargin > 2 && license('test','distrib_computing_toolbox')
                 td = distributed.nan(r,c);
@@ -317,30 +330,34 @@ classdef SegYFileReader < SeismicFileReader
                             'd = readTraceData(obj,traceNumbers,distributed)'];
                         e.message = sprintf([e.message,str]);
                     end
-                   rethrow(e)
+                    rethrow(e)
                 end
-                     
+
             end
-           
+
             for t = 1:length(traceNumber)
                 % read the trace header information
                 th(t) = readTraceHeader(obj,traceNumber(t));
-                
+                if th(t).NumberOfSamples <= 0
+                    th(t).NumberOfSamples = obj.FileHeader.BinaryHeader.NumberOfSamples;
+                end
+
                 % need to account for variable length data (NaNs)
                 n = th(t).NumberOfSamples;
+
                 % since r is sized by the first data set, it should never
                 % be smaller than this, we only need to test for the case
                 % where it is greater
-                
+
                 %if  th(t).NumberOfSamples > r
                 %    th(end:end+n,:) = NaN;
-                %end 
-                    
+                %end
+
                 % get trace data and fill pre-allocated array
                 fmtCode = obj.FileHeader.TraceFormat;
                 fmt = {fmtCode, th(1).NumberOfSamples};
                 offset = obj.FileHeader.TracePointers(traceNumber(t)) + ...
-                          240; % offset for trace binary header
+                    240; % offset for trace binary header
                 % account for ibm floating point
                 if obj.FileHeader.BinaryHeader.SampleFormatCode == 1
                     td(:,t) = ibm2ieee(readTraceData@SeismicFileReader(obj,fmt,offset));
@@ -349,47 +366,47 @@ classdef SegYFileReader < SeismicFileReader
                 end
             end % for loop
         end % readTraceData
-        
+
         function txt = parseTextBlock(obj,textBlock)
             % parse out text block data
             txt = [];
-                % extract keywords 
-                [keys,idx] = regexp(textBlock, '[A-Z_]\w*', 'match','start');
-                % check validity
-                [~,idx] = obj.validKeys(keys,idx);
-                
-                % remove 1st two bytes (offsets) in file from keywords
-                % and last offset bytes
-                textBlock([idx-2, idx-1,end-1:end]) = [];
-                                
-                % extract keywords with new index locations 
-                [keys,idx] = regexp(textBlock, '[A-Z_]\w*', 'match','end');
-                % check validity
-                [keys,idx] = obj.validKeys(keys,idx);
+            % extract keywords
+            [keys,idx] = regexp(textBlock, '[A-Z_]\w*', 'match','start');
+            % check validity
+            [~,idx] = obj.validKeys(keys,idx);
 
-                for i = 1:length(idx)
-                    if i < length(idx)
-                        str = textBlock((idx(i)+1):(idx(i+1)-length(keys{i+1})));
-                    else
-                        str = textBlock((idx(i)+1):end);
+            % remove 1st two bytes (offsets) in file from keywords
+            % and last offset bytes
+            textBlock([idx-2, idx-1,end-1:end]) = [];
+
+            % extract keywords with new index locations
+            [keys,idx] = regexp(textBlock, '[A-Z_]\w*', 'match','end');
+            % check validity
+            [keys,idx] = obj.validKeys(keys,idx);
+
+            for i = 1:length(idx)
+                if i < length(idx)
+                    str = textBlock((idx(i)+1):(idx(i+1)-length(keys{i+1})));
+                else
+                    str = textBlock((idx(i)+1):end);
+                end
+                % check if it is a date or time string
+                if isempty(strfind(str,':')) && isempty(strfind(str,'\'))
+                    tmpStr = str2num(str);
+                else
+                    tmpStr = deblank(strtrim(str));
+                end
+                if isempty(tmpStr)
+                    % If only whitespaces don't add
+                    if ~isempty(strtok(str,char(0)))
+                        txt.(keys{i}) = deblank(strtrim(str));
                     end
-                    % check if it is a date or time string
-                    if isempty(strfind(str,':')) && isempty(strfind(str,'\'))
-                        tmpStr = str2num(str);
-                    else
-                        tmpStr = deblank(strtrim(str));
-                    end
-                    if isempty(tmpStr)
-                        % If only whitespaces don't add
-                        if ~isempty(strtok(str,char(0)))
-                            txt.(keys{i}) = deblank(strtrim(str));
-                        end
-                    else
-                        txt.(keys{i}) = tmpStr;
-                    end
-                end % for
+                else
+                    txt.(keys{i}) = tmpStr;
+                end
+            end % for
         end % parseTextBlock
-   
+
         function varargout = subsref(obj,s)
             if numel(obj) > 1
                 if length(s) > 1
@@ -415,10 +432,48 @@ classdef SegYFileReader < SeismicFileReader
                 end
             end
         end % subsref
-    end % methods
-    
-    methods (Static)
         
+        function varargout = size(obj,dim)
+            cols = obj.NumberOfTraces;
+            traceInfo = obj.TraceDescription;
+            if isempty(traceInfo)
+                readTraceHeader(obj);
+                traceInfo = obj.TraceDescription;
+            end
+            rows = traceInfo(1).NumberOfSamples;
+            if ~exist('dim','var')
+                dim = [];
+            end
+            
+            if dim == 1
+                D = rows;
+            elseif dim == 2
+                D = cols;
+            else
+                D = [rows, cols];
+            end
+            
+            switch nargout
+                case {0, 1}
+                    varargout{1} = D;
+                otherwise
+                    for i = 1:nargout
+                        if i > length(D)
+                            varargout{i} = [];
+                        else
+                            varargout{i} = D(i);
+                        end
+                    end
+            end
+        end % size
+        
+        function out = end(obj,k,n)
+            out = size(obj,k);
+        end % end
+    end % methods
+
+    methods (Static)
+
         function [keys,idx] = validKeys(keys,idx)
             % check valid keys
             validKey = {'ACQUISITION_DATE',... % file header
@@ -439,7 +494,7 @@ classdef SegYFileReader < SeismicFileReader
                         'CDP_NUMBER',...
                         'CDP_TRACE',...
                         'CHANNEL_NUMBER',...
-                        'DATUM',...                       
+                        'DATUM',...
                         'DELAY',...
                         'DESCALING_FACTOR',...
                         'DIGITAL_BAND_REJECT_FILTER',...
@@ -468,14 +523,14 @@ classdef SegYFileReader < SeismicFileReader
                         'STACK',...
                         'STATIC_CORRECTIONS',...
                         'TRACE_TYPE',...
-                        'UNIT',...% non-spec keywords below                   
+                        'UNIT',...% non-spec keywords below
                         'ACQUISITION_SECOND_FRACTION'};
-            
-             lidx = ismember(keys,validKey);
-             keys = keys(lidx);
-             idx = idx(lidx);
+
+            lidx = ismember(keys,validKey);
+            keys = keys(lidx);
+            idx = idx(lidx);
         end % validKeys
-                      
+
     end % Static methods
-    
+
 end % Seg2FileReader Class

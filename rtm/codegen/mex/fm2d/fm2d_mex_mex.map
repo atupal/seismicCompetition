@@ -1,0 +1,11 @@
+MEX {
+	global:
+		mexFunction;
+		emlrtMexFcnProperties;
+		fm2d;
+		fm2d_initialize;
+		fm2d_terminate;
+		fm2d_atexit;
+	local:
+		*;
+};

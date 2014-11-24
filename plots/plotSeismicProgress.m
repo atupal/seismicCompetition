@@ -1,4 +1,4 @@
-function plotSeismicProgress(units,x,z,v,t,shot,M,Stacked,ixs,vwin,elaptime)
+function plotSeismicProgress(units,x,z,v,t,shot,M,Stacked,ixs,vwin,elaptime,iter)
 
 only_baseline_flag = nargin==4;
 
@@ -18,7 +18,7 @@ ax = axis;
 if only_baseline_flag==false
     % draw shot window
     hold on
-    %plot(x(vwin(1)),z(1),'w*');
+    % plot(x(vwin(1)),z(1),'w*');
     xwin = [x(vwin(1)), x(vwin(2)), x(vwin(2)), x(vwin(1)), x(vwin(1))];
     zwin = [z(1), z(1), z(end), z(end), z(1)];
     plot(xwin,zwin,'w-');
@@ -36,7 +36,7 @@ if only_baseline_flag==false
     Stacked = colorScaling(Stacked);
     imagesc(x,z,Stacked)%diff(Stacked,2,1))
     xlabel(xl); ylabel(zl);
-    title(['Stacked Image: Elapsed time ',hms(elaptime)]);
+    title(['Stacked Image: Elapsed time ',hms(elaptime),' <' num2str(iter) ' iterations>']);
     %axis equal tight
     
     %caxis([-1 1])

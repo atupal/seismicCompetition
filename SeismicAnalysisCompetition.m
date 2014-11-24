@@ -4,7 +4,7 @@
 % <http://sc14.supercomputing.org/engage/hpc-interconnections/sc14-student-cluster-competition
 % SC'14 Student Cluster Competition>.
 
-%% What is a Seismic Survey
+%% Seismic Survey
 % A seismic survey as it pertains to the analyses for this competition is
 % the recording and then processing of reflected seismic waves from the
 % Earth's subsurface for the purpose of imaging the subsurface structure.
@@ -14,7 +14,7 @@
 % src="http://www.youtube.com/embed/hxJa7EvYoFI" frameborder="0"
 % allowfullscreen></iframe></html>
 
-%% What is Seismic Migration
+%% Seismic Migration
 % From <http://en.wikipedia.org/wiki/Seismic_migration Wikipedia> _Seismic
 % migration is the process by which seismic events are geometrically
 % re-located in either space or time to the location the event occurred in
@@ -26,7 +26,7 @@
 % an initial velocity model of the subsurface structure that is used to
 % process the seismic data (shot) records.
 
-%% What is Reverse-Time Migration
+%% Reverse-Time Migration
 % Reverse-time migration is a depth migration process where a velocity
 % model of the subsurface is assumed, and this model is used to adjust the
 % data by a four step process:
@@ -40,7 +40,7 @@
 % boundaries as $\sum(ForwardTime_t*ReverseTime_t)$ to create the
 % pre-stack migration image
 % # Perform 1-3 repeatedly for each shot and add up all pre-stack images to
-% get the final image of the subsurface
+% get the final image of the subsurface.
 %
 % An example animation from
 % <https://www.geophysics.zmaw.de/index.php?id=271 Ekkehart Tessmer>
@@ -67,33 +67,36 @@
 %% Overview of the Code
 % You have been provided several MATLAB files to perform the 2D
 % Reverse-Time migration processing of simulated data.  There are two
-% models included, a fault velocity model and a salt tooth velocity model.
-%  The fault model is small and can run in a matter of minutes without
-%  parallel computing.  The salt tooth model is of moderate size, and will
-%  take hours to solve on a single compute node.
+% test models included, a fault velocity model and a salt tooth velocity
+% model.  The fault model is small and can run in a matter of minutes
+% without parallel computing.  The salt tooth model is of moderate size,
+% and will take hours to solve on a single compute node.
 %
 % The directory structure is as follows:
 %
-% * seismicCompetition - this folder contains files required
-% * faultModelData - data files for the fault model
-% * fileReader - utility functions for reading SEGY formatted
-% data or managing reading/writing of data to disk for cases where the data
-% is too large to fit into physical memory
+% * SEGY-files - folder storing the data sets
+% * seismicCompetition - this folder contains required MATLAB files
+% (everything listed below here)
+% * fileReader - utility functions for reading SEGY formatted data or
+%   managing reading/writing of data to disk for cases where the data is too
+%   large to fit into physical memory
 % * html - this documentation
+% * imageModelData - driver routine for processing data sets
 % * plots - utility functions for plotting overall progress
 % * results - resulting stacked image and timings
 % * rtm - functions for solving the 2D wave-equation in forward and reverse
-% time, including GPU implementations
-% * saltToothModelData - data files for the salt tooth model
+%   time, including GPU implementations
+% * support - helper functions
 
 %% Files of Interest to You
-% The MATLAB files of interest for you are |imageFaultModel| and
-% |imageSaltToothModel|.  These are the two programs you can run and
-% benchmark performance with and without parallel computing and GPU.  To
-% get a feel for how they work open up the |imageFaultModel| and take a
-% look at the different code sections:
+% The MATLAB files of interest for you are |imageModelData|.  This is the
+% main driver routine you can run and benchmark performance with
+% and without parallel computing and GPU.  To get a feel for how it
+% works, open up |imageModelData| and take a look at the different
+% code sections:
 %
-% * Run Configuration - defines files, path, and run mode
+% * Run Configuration - defines files, MATLAB path, and location of
+% velocity model and shot records
 % * Model and Data Parameters - define the model parameters needed by other
 % parts of the program.  These are the velocity and shot record geometric
 % and time parameters.
@@ -102,51 +105,15 @@
 % * Process Shots - Reverse Time Migration - performs the migration
 % processing task using a defined run mode
 %
-% *TO BE REVIEWED BEFORE FINAL VERSION -- START*
-%
-% *Note:  You need to modify the remoteVelocityFile/remoteShotFiles,
-% runMode and readFromMem parameter in these files.  No other modifications
-% should be required on your part.*
-%
-% remoteVelocityFile/remoteShotFiles - These files are read as memory
-% mapped files.  If the workers (see Parallel Computing with MATLAB below)
-% do not share a filesystem with the MATLAB client, the files will need to
-% be read again by the workers.  Therefore, you'll need to list where the
-% files are reachable on the compute nodes.  If the workers can reach the
-% velocity and shot files, then the remoteVelocityFile and remoteShotFiles
-% can each be set to the emptry string (i.e. '').
-%
-% readFromMem - The MATLAB code provided to you is set up to run in two
-% modes:
-%
-% # Read from Memory (|readFromMem = true|)
-% # Read from File (|readFromMem = false|)
-%
-% Set readFromMem to true if the remoteVelocityFile and remoteShotFiles are
-% reachable from the compute nodes and do not need to be reread.
-%
-% If an entire parallel job is run on the machine running the MATLAB
-% client, then set
-%
-%   readFromMem = true;
-%
-% Otherwise, if the parallel job is run across multiple nodes, then set
-%
-%   readFromMem = false;
-%
-% *TO BE REVIEWED BEFORE FINAL VERSION -- END*
-%
-% runMode - The MATLAB code provided to you is set up to run in three
-% modes (note: GPU is not currently implemented)
-%
-% # Single CPU (|runMode = {'serial'}|)
-% # HPC Cluster (|runMode = {'parallel'}|)
-% # HPC Cluster with GPUs (|runMode = {'parallel-gpu'}|)
-%
-% Set these to run 1 or more cases by defining |runMode| as shown above,
-% or more than one together, such as
-%
-%   runMode = {'serial','parallel'};
+% remoteVelocityFile/remoteShotFiles - The velocity model and shot records
+% are read as memory mapped files.  If the workers (see Parallel Computing
+% with MATLAB below) do not share a filesystem with the MATLAB client, the
+% files will need to be read again by the workers.  Therefore, you'll need
+% to list where the files are reachable on the compute nodes by defining
+% |remoteVelocityFile| and |remoteShotFiles|.   If the workers can reach
+% the velocity and shot files, then leave remoteVelocityFile and
+% remoteShotFiles as defined.  Search for *ATTENTION* in |imageModelData|
+% for where to define these.
 
 %% Parallel Computing with MATLAB
 % MATLAB supports parallel computing via the Parallel Computing Toolbox
@@ -176,18 +143,20 @@
 %   The client lost connection to worker 2. This might be due to network problems, or the interactive communicating job might have errored.
 %
 % there's a good chance each worker is consuming too much memory.  For
-% instance, as it's currently shipped, the salt tooth model requires approx
-% 7-8 GB RAM per worker.
-%
+% instance, as it's currently shipped, the summer salt tooth model requires
+% approx 7-8 GB RAM per worker.
+
+%%
 % NOTE: In parallel mode, if you receive a warning or error message
 % regarding the SeismicFileReader, the workers on the compute nodes cannot
 % access the .segy file(s).  This would indicate that you need to set
-% |readFromMem| to |false|.
+% |remoteVelocityFile| and |remoteShotFiles| in |imageModelData| (see
+% *ATTENTION*).
 
 %% Run It
 % Run the first model, fault, to get a feel for how it works.  Type
 %
-%   imageFaultModel
+%   imageModelData('SummerFault','/dir/to/SEGY-files',{'serial'})
 %
 % at the MATLAB command line.  You should see a plot of the velocity model,
 % and after a minute or two, you should see four subplots.  The first is
@@ -200,17 +169,21 @@
 %
 % Now try running the salt model.  Type
 %
-%   imageSaltToothModel
+%   imageModelData('SummerSaltTooth','/dir/to/SEGY-files',{'serial'})
 %
-% This will take considerable longer.  A new data set will be presented at
-% the conference.
+% This will take considerable longer.  To run in faster, start a parallel
+% pool and run the code in parallel (10 workers is an example and not
+% neccessarily the most optimal number of workers to run)
+%
+%   p = parpool(10);
+%   imageModelData('SummerSaltTooth','/dir/to/SEGY-file',{'parallel'})
+%
+% A new data set will be presented at the conference.
 
 %% Timing
 % While the image is being constructed, a timing file is being generated.
 % The timing file consists primarily of the time steps for each shot
-% record processed as well as the total time to solve the problem.  Scoring
-% will be based on the number of shot records processed in the least
-% amount of time.
+% record processed as well as the total time to solve the problem.
 
 %% References
 %

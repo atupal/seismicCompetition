@@ -4,7 +4,8 @@ classdef diskArray < handle
     
     properties (SetAccess = protected)
         VariableName = 'tempVar';
-        FileName = ['tempvar_',num2str(labindex),'.mat'];
+        % FileName = ['tempvar_',num2str(labindex),'.mat'];
+        FileName = ['tempvar_',num2str(ceil(rand*1000000)),'.mat'];
         FilePath = tempdir;
         SizeOfArray = [];
         Writable = false;

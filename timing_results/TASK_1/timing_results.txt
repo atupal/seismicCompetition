@@ -1,0 +1,16 @@
+
+serial: 
+  - time: 17.8
+  - speedup: 1
+
+2_worker:
+  - time: 11.5
+  - speedup: 1.55
+
+4_worker:
+  - time: 6.1
+  - speedup: 2.92
+
+8_worker:
+  - time: 3.4
+  - speedup: 5.24

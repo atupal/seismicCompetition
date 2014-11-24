@@ -1,0 +1,12 @@
+
+4_worker:
+  - time: 238
+  - speedup: 1
+
+8_worker:
+  - time: 128.9
+  - speedup: 1.85
+
+16_worker:
+  - time: 97.3
+  - speedup: 2.45
