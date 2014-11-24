@@ -33,15 +33,38 @@ void mexFunction(int plhs, mxArray *alhs[], const int prhs,
 		9.6464029348312264e-01, 9.7995365426708503e-01,
 		9.9104037877288398e-01, 9.9775252935263015e-01,
 		1.0000000000000000e+00 };
-	double * data = mxGetPr(arhs[1]);
 	double * v = mxGetPr(arhs[0]);
-	double  dt = mxGetPr(arhs[3])[0];
+	double * data = mxGetPr(arhs[1]);
 	double  dx = mxGetPr(arhs[2])[0];
+	double  dt = mxGetPr(arhs[3])[0];
+
+  double *shot = mxGetPr(arhs[4]);
+  int s_nt = mxGetM(arhs[4]);
+  int s_nx = mxGetN(arhs[4]);
+
 	double *temp = NULL;
 	alhs[0] = mxCreateDoubleMatrix(nz, nx, mxREAL);
+	alhs[1] = mxCreateDoubleMatrix(s_nx, s_nt, mxREAL);
 	double * M = mxGetPr(alhs[0]);
+	double * currentShot = mxGetPr(alhs[1]);
 	rtm2d_fm2d(v, data,boundary, M, nz, nx, nt, dt, dx);
 
+  //for (int is = 0; is < nx; ++ is) {
+  for (int is = 0; is < s_nx; ++ is) {
+    for (int it = 0; it < s_nt; ++ it) {
+      currentShot[ it*s_nx + is] = shot[is*s_nt + it];
+      /*
+      if ( is < 20 )  {
+        currentShot[ it*nx + is] = shot[((int)inds[0]-1)*snt + it]*ss;
+      } else if ( is < inds_end+20) {
+        currentShot[ it*nx + is] = shot[((int)inds[is-20]-1)*snt + it]*ss;
+      } else {
+        currentShot[ it*nx + is] = shot[((int)inds[inds_end-1]-1)*snt + it]*ss;
+      }
+      */
+      //currentShot[ it*nt + is] = shot[is*nt + it];
+    }
+  } 
 }
 
 void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, int nx, int nt, double dt, double dx)
@@ -77,8 +100,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 
 
     char systemargs[1000];
-    snprintf(systemargs, 999, "env OMP_NUM_THREADS=1 rtm/rtm2d_fm2d_mex.core %d %d", key, shmsize);
-    //snprintf(systemargs, 999, "rtm/rtm2d_fm2d_mex.core %d %d", key, shmsize);
+    snprintf(systemargs, 999, "env OMP_NUM_THREADS=2 rtm/rtm2d_fm2d_mex.core %d %d", key, shmsize);
     system(systemargs);
 
 

@@ -20,7 +20,7 @@ cd $MATLAB_ROOT/toolbox/distcomp/bin
 #./startworker -jobmanagerhost $MJS_SERVER -jobmanager sc14 -remotehost $MDCE_SERVER -v
 
 for node in cpu1 cpu3 cpu4 gpu1 gpu2 gpu3 gpu4 gpu5; do
-  for worker in `seq 1 15`; do
+  for worker in `seq 1 4`; do
     ssh $node "cd $MATLAB_ROOT/toolbox/distcomp/bin && ./startworker \
       -jobmanagerhost $MJS_SERVER -jobmanager sc14 -name worker${worker}"
   done

@@ -8,9 +8,12 @@
 #include <sys/shm.h>
 #include <sys/sem.h>
 #include "shm_copy_common.h"
+#include <time.h>
 #define min(ELE1,ELE2) (ELE1)>(ELE2)?(ELE2):(ELE1);
 
-void rtm2d_fm2d(double *v, double *data,double *boundary, double* M, int nz, int nx, int nt, double dt, double dx);
+typedef long long int64;
+
+void rtm2d_fm2d(double *v, double *data,double *boundary, double* M, int64 nz, int64 nx, int64 nt, double dt, double dx);
 
 int itoa(char *s) {
     int v = 0;
@@ -96,7 +99,7 @@ int main(int argc, char *argv[]) {
     exit(0);
 }
 
-void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, int nx, int nt, double dt, double dx)
+void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int64 nz, int64 nx, int64 nt, double dt, double dx)
 {
 	double * fdm1 = (double *)malloc(sizeof(double)*nz*nx);
 	double * fdm2 = (double *)malloc(sizeof(double)*nz*nx);
@@ -114,14 +117,14 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 
 	//memset M to zero
 #pragma omp parallel for
-	for (int i = 0; i < nx; i++)
+	for (int64 i = 0; i < nx; i++)
 #pragma simd
-		for (int j = 0; j < nz; j++)
+		for (int64 j = 0; j < nz; j++)
 			M[i*nz + j] = 0.0;
 
 	//initial fdm1,fdm2,fdm3
 #pragma omp parallel for
-	for (int ix = 0; ix < nx; ix++)
+	for (int64 ix = 0; ix < nx; ix++)
 	{
 		fdm1[ix*nz] = data[(nt - 1)*nx + ix];
 		fdm2[ix*nz] = data[(nt - 2)*nx + ix];
@@ -129,10 +132,10 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 	}
 
 #pragma omp parallel for
-	for (int ix = 0; ix < nx; ix++)
+	for (int64 ix = 0; ix < nx; ix++)
 	{
 #pragma simd
-		for (int j = 0; j < nz; j++)
+		for (int64 j = 0; j < nz; j++)
 		{
       double tmp = v[ix*nz + j] * dt / dx;
 			//a[ix*nz + j] = pow(v[ix*nz + j] * dt_dx, 2);
@@ -143,7 +146,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 	int cz = 3;
 	int bz = 0;
 #pragma omp parallel
-	for (int it = nt - 2; it >= 0; it--)
+	for (int64 it = nt - 2; it >= 0; it--)
 	{
 #pragma omp single
         {
@@ -153,10 +156,10 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 
 		//fdm1 and fdm2 dot boundary   0~20 and nx-20~nx-1
 #pragma omp for
-		for (int ix = 0; ix < 20; ix++)
+		for (int64 ix = 0; ix < 20; ix++)
 		{
 #pragma simd
-			for (int iz = 0; iz < bz; iz++)
+			for (int64 iz = 0; iz < bz; iz++)
 			{
 				fdm1[ix*nz + iz] = boundary[ix] * fdm1[ix*nz + iz];
 				fdm2[ix*nz + iz] = boundary[ix] * fdm2[ix*nz + iz];
@@ -167,31 +170,31 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 		if (bz >= (nz - 19))
 		{
 #pragma omp for
-			for (int ix = 0; ix < nx; ix++)
+			for (int64 ix = 0; ix < nx; ix++)
 			{
 #pragma simd
-				for (int iz = nz - 20; iz < bz; iz++)
+				for (int64 iz = nz - 20; iz < bz; iz++)
 				{
 					fdm1[ix*nz + iz] = boundary[nz - 1 - iz] * fdm1[ix*nz + iz];
 					fdm2[ix*nz + iz] = boundary[nz - 1 - iz] * fdm2[ix*nz + iz];
 				}
 			}
 		}
-		int ez = (nz == bz) ? nz - 1 : bz;
+		int64 ez = (nz == bz) ? nz - 1 : bz;
 #pragma omp for
-		for (int ix = 1; ix < nx - 1; ix++)
+		for (int64 ix = 1; ix < nx - 1; ix++)
 		{
 #pragma simd
-			for (int iz = 0; iz < bz; iz++)
+			for (int64 iz = 0; iz < bz; iz++)
 			{
 				fdm3[ix*nz + iz] -= fdm1[ix*nz + iz];
 			}
 		}
 #pragma omp for
-		for (int ix = 1; ix < nx - 1; ix++)
+		for (int64 ix = 1; ix < nx - 1; ix++)
 		{
 #pragma simd
-			for (int iz = 1; iz < ez; iz++)
+			for (int64 iz = 1; iz < ez; iz++)
 			{
 				fdm2[ix*nz + iz] = b[ix*nz + iz] * fdm1[ix*nz + iz] + fdm2[ix*nz + iz]
 					+ a[(ix + 1)*nz + iz] * fdm1[(ix + 1)*nz + iz]
@@ -201,7 +204,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 			}
 		}
 #pragma omp for
-		for (int ix = 1; ix < nx - 1; ix++)
+		for (int64 ix = 1; ix < nx - 1; ix++)
 		{
 			fdm2[ix*nz] = b[ix*nz] * fdm1[ix*nz] + fdm2[ix*nz]
 				+ a[(ix + 1)*nz] * fdm1[(ix + 1)*nz]
@@ -211,7 +214,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 		if (bz == nz)
 		{
 #pragma omp for
-			for (int ix = 1; ix < nx - 1; ix++)
+			for (int64 ix = 1; ix < nx - 1; ix++)
 				fdm2[ix*nz + nz - 1] = b[ix*nz + nz - 1] * fdm1[ix*nz + nz - 1] + fdm2[ix*nz + nz - 1]
 				+ a[(ix + 1)*nz + nz - 1] * fdm1[(ix + 1)*nz + nz - 1]
 				+ a[(ix - 1)*nz + nz - 1] * fdm1[(ix - 1)*nz + nz - 1]
@@ -223,7 +226,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 		}
 
 #pragma omp for
-		for (int iz = 1; iz < ez; iz++)
+		for (int64 iz = 1; iz < ez; iz++)
 		{
 			// time extrapolation at ix = 0
 			fdm2[iz] = b[iz] * fdm1[iz] + fdm2[iz]
@@ -261,7 +264,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 #pragma omp single
 			memset(fdm3, 0, sizeof(double)*nz*nx);
 #pragma omp for
-			for (int ix = 0; ix < nx; ix++)
+			for (int64 ix = 0; ix < nx; ix++)
 			{
 				fdm3[ix*nz] = data[(it - 2)*nx + ix];
 			}
@@ -269,22 +272,22 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 		else
 		{
 #pragma omp for
-			for (int ix = 0; ix < nx; ix++)
+			for (int64 ix = 0; ix < nx; ix++)
 			{
 #pragma simd
-				for (int iz = 0; iz < nz; iz++)
+				for (int64 iz = 0; iz < nz; iz++)
 				{
 					fdm3[ix*nz + iz] = fdm2[ix*nz + iz];
 				}
 			}
 		}
 
-		int ntt = nx*nz*it;
+		int64 ntt = nx*nz*it;
 #pragma omp for
-		for (int ix	= 0; ix < nx; ix++)
+		for (int64 ix	= 0; ix < nx; ix++)
 		{
 #pragma simd
-			for (int iz = 0; iz < nz; iz++)
+			for (int64 iz = 0; iz < nz; iz++)
 			{
 				snapshot[ntt + ix*nz + iz] = fdm1[ix*nz + iz];
 			}
@@ -307,14 +310,14 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 
 	//it prablem
 #pragma omp parallel
-	for (int it = 1; it < nt; it++)
+	for (int64 it = 1; it < nt; it++)
 	{
 
 #pragma omp for
-		for (int ix = 1; ix < nx-1; ix++)
+		for (int64 ix = 1; ix < nx-1; ix++)
 		{
 #pragma simd
-			for (int iz = 1; iz < nz - 1; iz++)
+			for (int64 iz = 1; iz < nz - 1; iz++)
 			{
 				fdm3[ix*nz + iz] = b[ix*nz + iz] * fdm2[ix*nz + iz] - fdm1[ix*nz + iz] + \
 					a[ix*nz + iz] * (fdm2[(ix + 1)*nz + iz] + fdm2[(ix - 1)*nz + iz] + \
@@ -323,7 +326,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 		}
 
 #pragma omp for
-		for (int iz = 1; iz < nz-1; iz++)
+		for (int64 iz = 1; iz < nz-1; iz++)
 		{
 			fdm3[iz] = b[iz] * fdm2[iz] - fdm1[iz] +
 				a[iz] * (fdm2[nz + iz] + fdm2[(iz + 1)] + fdm2[(iz - 1)]);
@@ -333,7 +336,7 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 		}
 
 #pragma omp for
-		for (int ix = 1; ix < nx - 1; ix++)
+		for (int64 ix = 1; ix < nx - 1; ix++)
 		{
 			fdm3[ix*nz] = b[ix*nz] * fdm2[ix*nz] - fdm1[ix*nz] +
 				a[ix*nz] * (fdm2[ix*nz + 1] + fdm2[(ix + 1)*nz] + fdm2[(ix - 1)*nz]);
@@ -364,10 +367,10 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
         }
 
 #pragma omp for
-		for (int ix = 0; ix < 20; ix++)
+		for (int64 ix = 0; ix < 20; ix++)
 		{
 #pragma simd
-			for (int iz = 0; iz < nz - 20; iz++)
+			for (int64 iz = 0; iz < nz - 20; iz++)
 			{
 				fdm1[ix*nz + iz] = boundary[ix] * fdm1[ix*nz + iz];
 				fdm2[ix*nz + iz] = boundary[ix] * fdm2[ix*nz + iz];
@@ -375,10 +378,10 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 		}
 
 #pragma omp for
-		for (int ix = nx - 20; ix < nx; ix++)
+		for (int64 ix = nx - 20; ix < nx; ix++)
 		{
 #pragma simd
-			for (int iz = 0; iz < nz - 20; iz++)
+			for (int64 iz = 0; iz < nz - 20; iz++)
 			{
 				fdm1[ix*nz + iz] = boundary[nx - 1 - ix] * fdm1[ix*nz + iz];
 				fdm2[ix*nz + iz] = boundary[nx - 1 - ix] * fdm2[ix*nz + iz];
@@ -386,22 +389,22 @@ void rtm2d_fm2d(double *v , double *data, double *boundary, double* M, int nz, i
 		}
 
 #pragma omp for
-		for (int ix = 0; ix < nx; ix++)
+		for (int64 ix = 0; ix < nx; ix++)
 		{
 #pragma simd
-			for (int iz = nz - 20; iz < nz; iz++)
+			for (int64 iz = nz - 20; iz < nz; iz++)
 			{
 				fdm1[ix*nz + iz] = boundary[nz - 1 - iz] * fdm1[ix*nz + iz];
 				fdm2[ix*nz + iz] = boundary[nz - 1 - iz] * fdm2[ix*nz + iz];
 			}
 		}
 
-		int tempPoint = (nt-it-1)*nx*nz;
+		int64 tempPoint = (nt-it-1)*nx*nz;
 #pragma omp for
-		for (int ix = 0; ix < nx; ix++)
+		for (int64 ix = 0; ix < nx; ix++)
 		{
 #pragma simd
-			for (int iz = 0; iz < nz; iz++)
+			for (int64 iz = 0; iz < nz; iz++)
 			{
 				//order
 				M[ix*nz + iz] += fdm1[ix*nz + iz]*snapshot[ix*nz + iz + tempPoint];

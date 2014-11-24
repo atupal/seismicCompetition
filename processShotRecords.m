@@ -1,4 +1,4 @@
-function [dM,indv,inds,trtm,tfm] = processShotRecords(VMOD,SHOT,ixs,ixwin,nxwin,ntr,nz,nx,nr,nt,dsx,dx,dt,ss)
+function [dM,indv,inds,vshot,trtm,tfm] = processShotRecords(VMOD,SHOT,ixs,ixwin,nxwin,ntr,nz,nx,nr,nt,dsx,dx,dt,ss)
 %PROCESSSHOTRECORDS creates an image using reverse-time migration
 %
 % Inputs
@@ -17,13 +17,16 @@ function [dM,indv,inds,trtm,tfm] = processShotRecords(VMOD,SHOT,ixs,ixwin,nxwin,
 %   dt      sampling time
 %   ss      shot scaling parameter
 
-persistent v shot
+% persistent v shot
+v = [];
+shot = [];
 if isempty(v)
     if ischar(VMOD)
         v = SegYFileReader(VMOD,true,false);
         v = v(:,:);
     else
-        v = VMOD(:,:);
+        % v = VMOD(:,:);
+        v = VMOD;
     end
 end
 if isempty(shot)
@@ -68,7 +71,9 @@ V(end+1:end+20,:) = repmat(V(end,:),20,1);
 
 % add absorbing boundary condition to initial shot record data
 currentShot = [repmat(shot(:,inds(1)),1,20), shot(:,inds),...
-    repmat(shot(:,inds(end)),1,20)]' * ss;
+    repmat(shot(:,inds(end)),1,20)]' ; %* ss;
+vshot = shot(:,inds)'*ss;
+% vshot = [];
 
 
 % fprintf('B\n')
@@ -76,55 +81,8 @@ currentShot = [repmat(shot(:,inds(1)),1,20), shot(:,inds),...
 % fprintf('\n');
 stic = tic;
 
-%%%%%%% Process shots in reverse time
-%%%%%
-%%%%%rtic = tic;
-%%%%%[rtmdl, rtmsnapshot] = rtm2d(V,currentShot,dx,dt);
-%%%%%trtm = toc(rtic);
-%%%%%%% Process rtm solution in forward time
-%%%%%ftic = tic;
-%%%%%[~, snapshot] = fm2d(V,rtmdl,dx,nt,dt);
-%%%%%tfm = toc(ftic);
-%%%%%
-%%%%%%% Create an image from rtm and fm
-%%%%%% Image is the product of rtm and fm solutions
-%%%%%[r,c,~] = size(snapshot);
-%%%%%M = zeros(r,c);
-%%%%%for i = 1:nt
-%%%%%    M = snapshot(:,:,i).*rtmsnapshot(:,:,nt-i+1) + M;
-%%%%%end
-%%%%%sw = repmat(0:nr-1,nz,1) + ixs;
-%%%%%sw(sw>nr)=nr;
-%%%%%
-%%%%%dM = diff(M(1:end-18,21:end-20),2,1);
-%%%%%dM = dM - mean(dM(:));
-%%%%%sw = sw(:,1:size(dM,2));
-%%%%%dM = dM./sw;
-
-
-
-%% Process shots in reverse time
-
-%%% rtic = tic;
-%%% 
-%%% [rtmdl, rtmsnapshot] = rtm2d(V,currentShot,dx,dt);
-%%% trtm = toc(rtic);
-%%% %% Process rtm solution in forward time
-%%% ftic = tic;
-%%% [~, snapshot] = fm2d(V,rtmdl,dx,nt,dt);
-%%% % snapshot = fm2d(V,rtmdl,dx, nt,dt);
-%%% tfm = toc(ftic);
-%%% 
-%%% %% Create an image from rtm and fm
-%%% % Image is the product of rtm and fm solutions
-%%% [r,c,~] = size(snapshot);
-%%% M = zeros(r,c);
-%%% for i = 1:nt
-%%%     M = snapshot(:,:,i).*rtmsnapshot(:,:,nt-i+1) + M;
-%%% end
 
 %M = rtm2d_fm2d_mex(V,currentShot,dx,dt);
-
 sw = repmat(0:nr-1,nz,1) + ixs;
 sw(sw>nr)=nr;
 
@@ -140,4 +98,3 @@ dM = diff(M(1:end-18,21:end-20),2,1);
 dM = dM - mean(dM(:));
 sw = sw(:,1:size(dM,2));
 dM = dM./sw;
-

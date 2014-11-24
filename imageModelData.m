@@ -51,6 +51,7 @@ addpath(modeld)
 addpath(fullfile(rootd,'rtm'))
 addpath(fullfile(rootd,'plots'))
 addpath(fullfile(rootd,'fileReader'))
+addpath(fullfile(rootd,'SegyMAT'))
 addpath(fullfile(rootd,'support'))
 resultsd = fullfile(rootd,'results');
 addpath(resultsd)
@@ -90,6 +91,7 @@ dsx = ds/dxr;
 
 %% Load velocity model
 v = SegYFileReader(velocityFile,true,false);
+% v = ReadSegyFast(velocityFile);
 velocityModel = v(:,:);
 
 [nz,nx] = size(velocityModel);
@@ -103,6 +105,7 @@ plotSeismicProgress(units,x,z,velocityModel)
 
 %% Load shot data records
 shot = SegYFileReader(shotFiles,true,false);
+% shot = ReadSegyFast(shotFiles);
 ntr = nr*ns;
 
 % Calculate the number of traces per shot record moving over the domain
@@ -128,14 +131,15 @@ for runCase = 1:length(runMode)
             tserial = 0;
             for ixs = 1:ns
                 stic = tic;
-                [dM,indv,inds] = processShotRecords(v,shot,ixs,ixwin,nxwin,ntr,nz,nx,nr,nt,dsx,dx,dt,ss);
+                [dM,indv,inds,vshot] = processShotRecords(v,shot,ixs,ixwin,nxwin,ntr,nz,nx,nr,nt,dsx,dx,dt,ss);
                 tserial = toc(stic) + tserial;
                 if mod(ixs,100)==0 || ixs==ns
                     disp(['Completed: ' num2str(ixs) '/' num2str(ns)])
                 end
                 Stacked(:,indv(1):indv(end)) = dM + Stacked(:,indv(1):indv(end));
                 LOGGER('Total processing time through iter %04d: %s\n',ixs,hms(tserial))
-                plotSeismicProgress(units,x,z,velocityModel,t,shot(:,inds)'*ss,dM,Stacked,ixs,[indv(1),indv(end)],tserial,ixs)
+                % plotSeismicProgress(units,x,z,velocityModel,t,shot(:,inds)'*ss,dM,Stacked,ixs,[indv(1),indv(end)],tserial,ixs)
+                plotSeismicProgress(units,x,z,velocityModel,t,vshot,dM,Stacked,ixs,[indv(1),indv(end)],tserial,ixs)
             end
             LOGGER('Processing time for serial run:\t\t %s\n',hms(tserial))
             save(fullfile(resultsd,[resultsfile '_serial']),'Stacked')
@@ -165,11 +169,11 @@ for runCase = 1:length(runMode)
             for ixs = 1:ns
                 % Submit futures
                 if commonFs==true
-                    f(ixs) = parfeval(p,@processShotRecords,3, ...
+                    f(ixs) = parfeval(p,@processShotRecords,4, ...
                         v,shot, ...
                         ixs,ixwin,nxwin,ntr,nz,nx,nr,nt,dsx,dx,dt,ss); %#ok<AGROW>
                 else
-                    f(ixs) = parfeval(p,@processShotRecords,3, ...
+                    f(ixs) = parfeval(p,@processShotRecords,4, ...
                         remoteVelocityFile,remoteShotFiles, ...
                         ixs,ixwin,nxwin,ntr,nz,nx,nr,nt,dsx,dx,dt,ss); %#ok<AGROW>
                 end
@@ -181,7 +185,7 @@ for runCase = 1:length(runMode)
                     caught_fetch_error_flag = false;
                     % Fetch next available block
                     try
-                        [IXS,dM,indv,inds] = fetchNext(f);
+                        [IXS,dM,indv,inds,vshot] = fetchNext(f);
                     catch E
                         % There could be several reasons the fetch
                         % fails.  We don't want to long jump out of
@@ -200,8 +204,8 @@ for runCase = 1:length(runMode)
                         % Store results in final image
                         Stacked(:,indv(1):indv(end)) = dM + Stacked(:,indv(1):indv(end));
                         % Show current plot
-                        shot(:, inds)' * ss;
                         % plotSeismicProgress(units,x,z,velocityModel,t,shot(:,inds)'*ss,dM,Stacked,IXS,[indv(1),indv(end)],tparallel,ixs)
+                        plotSeismicProgress(units,x,z,velocityModel,t,vshot,dM,Stacked,IXS,[indv(1),indv(end)],tparallel,ixs)
                     end
                     LOGGER('Total processing time through iter %04d: %s\n',ixs,hms(tparallel))
                 end
